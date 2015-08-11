@@ -1,0 +1,12 @@
+dist
+venv
+.venv
+.coverage
+.env
+*.egg-info
+*.pyc
+.DS_Store
+docs/_build
+
+python-24so.sublime-project
+python-24so.sublime-workspace
