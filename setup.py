@@ -10,7 +10,7 @@ import re
 from setuptools import find_packages
 from distutils.core import setup
 
-with open(os.path.join('intercom', '__init__.py')) as init:
+with open(os.path.join('tfsoffice', '__init__.py')) as init:
     source = init.read()
     m = re.search("__version__ = '(\d+\.\d+(\.(\d+|[a-z]+))?)'", source, re.M)
     __version__ = m.groups()[0]
