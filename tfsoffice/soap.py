@@ -99,7 +99,7 @@ class TwentyFour(object):
         project.Name = name
         project.NameDisplay = project_name_type
         project.Version = 1  # no rights management
-        status, project_id = client.service.save_project(project)
+        status, project_id = client.service.saveProject(project)
         assert status == 200, 'SaveProject is not ok: %s' % status
         logging.info('Created new project: %s' % project_id)
 
@@ -114,7 +114,7 @@ class TwentyFour(object):
         Project
         '''
         client = self.get_client('Project')
-        status, result = client.service.save_project(project)
+        status, result = client.service.saveProject(project)
         assert status == 200, 'SaveProject is not ok: %s' % status
         print '-- SaveProject OK (update) --'
         logging.info('Project [%s] saved' % project.Id)
