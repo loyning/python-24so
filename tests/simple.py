@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from tfsoffice import TwentyFour
 import sys
+import os
+PARENT_DIR = os.path.join(os.path.abspath(os.path.curdir), '')
+sys.path.append(PARENT_DIR)
+sys.path.append('..')
+from tfsoffice import TwentyFour
 
 
 def main(username, password, applicationid):
@@ -9,29 +13,29 @@ def main(username, password, applicationid):
     api = TwentyFour(username, password, applicationid)
 
     # save company
-    # api.saveCompany('Tester igjen', companyType='Supplier', Id=433,
+    # api.save_company('Tester igjen', companyType='Supplier', Id=433,
     #                 email_work='email_work@loyning.net',
     #                 email_invoice='email_invoice@loyning.net',
     #                 phone='123456789')
 
     # list companies
-    # print 'CustomerId 433: ', api.listCompanies(CompanyId=433)
+    # print 'CustomerId 433: ', api.list_companies(CompanyId=433)
     # print '-- Categories --'
-    # print api.listCompanyCategories(433)
-    # print 'CustomerName *elias: ', api.listCompanies(CompanyName='elias')
+    # print api.list_company_categories(433)
+    # print 'CustomerName *elias: ', api.list_companies(CompanyName='elias')
 
     # save company categories
-    # result = api.saveCompanyCategories(
+    # result = api.save_companyCategories(
     #     CompanyId=433, categories=['Blogger', ])
     # print 'saveCompanyCategories'
     # print result
 
     # get project client
-    # client = api.getClient('Project')
+    # client = api.get_client('Project')
     # status, project = client.service.GetSingleProject(317)
     # print project
 
-    projects = api.findProject(CustomerId=108)
+    projects = api.find_project(CustomerId=108)
     if projects:
         print 'Found %s projects' % len(projects)
         print projects

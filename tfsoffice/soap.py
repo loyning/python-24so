@@ -65,17 +65,17 @@ class TwentyFour(object):
             username,
             password,
             applicationid,
-            identityId="00000000-0000-0000-0000-000000000000"
+            identityid="00000000-0000-0000-0000-000000000000"
     ):
         client = Client(self._services['Authenticate'], faults=self._faults)
         cred = client.factory.create('Credential')
         cred.ApplicationId = applicationid
-        # cred.IdentityId = identityId
+        # cred.identityid = identityid
         cred.Username = username
         cred.Password = password
         return client.service.Login(cred)
 
-    def getClient(self, name):
+    def get_client(self, name):
         if name in self._clients:
             return self._clients[name]
 
@@ -87,19 +87,19 @@ class TwentyFour(object):
         logging.debug('Created new service: %s' % name)
         return self._clients[name]
 
-    def createProject(self, name):
+    def create_project(self, name):
         r'''
         Project
         '''
-        client = self.getClient('Project')
-        ProjectNameType = client.factory.create('ProjectNameType')
+        client = self.get_client('Project')
+        project_name_type = client.factory.create('ProjectNameType')
 
         # create empty project
         project = client.factory.create('Project')
         project.Name = name
-        project.NameDisplay = ProjectNameType
+        project.NameDisplay = project_name_type
         project.Version = 1  # no rights management
-        status, project_id = client.service.SaveProject(project)
+        status, project_id = client.service.save_project(project)
         assert status == 200, 'SaveProject is not ok: %s' % status
         logging.info('Created new project: %s' % project_id)
 
@@ -109,17 +109,17 @@ class TwentyFour(object):
 
         return project
 
-    def saveProject(self, project):
+    def save_project(self, project):
         r'''
         Project
         '''
-        client = self.getClient('Project')
-        status, result = client.service.SaveProject(project)
+        client = self.get_client('Project')
+        status, result = client.service.save_project(project)
         assert status == 200, 'SaveProject is not ok: %s' % status
         print '-- SaveProject OK (update) --'
         logging.info('Project [%s] saved' % project.Id)
 
-    def findProject(self, **kwargs):
+    def find_project(self, **kwargs):
         r'''
         Only accepts ONE parameter at a time.
         CustomerId int
@@ -132,22 +132,22 @@ class TwentyFour(object):
         http://developer.24sevenoffice.com/hidden/webserviceprojectservicev001-datatypes/
         '''
         # get project client
-        client = self.getClient('Project')
+        client = self.get_client('Project')
 
         # create a basic search
-        projectSearch = client.factory.create('ProjectSearch')
+        project_search = client.factory.create('ProjectSearch')
         for key, value in kwargs.iteritems():
-            setattr(projectSearch, key, value)
+            setattr(project_search, key, value)
 
         # search for projects
-        status, projects = client.service.GetProjectList(projectSearch)
+        status, projects = client.service.GetProjectList(project_search)
         assert status == 200, 'GetProjectList failed: %s' % status
         if 'Project' not in projects:
             return None
         projects = [p for p in projects.Project]
         return projects
 
-    def listCompanies(self, **kwargs):
+    def list_companies(self, **kwargs):
         r'''
         List companies by:
         CustomerId
@@ -161,11 +161,11 @@ class TwentyFour(object):
             'No valid CompanySearchParameters '\
             '(CompanyId|CompanyName|ChangedAfter)'
 
-        client = self.getClient('Company')
+        client = self.get_client('Company')
 
         # returnProperties
-        ArrayOfString = client.factory.create('ArrayOfString')
-        ArrayOfString.string = ['Owner', 'Name', 'FirstName', 'Country',
+        return_values = client.factory.create('ArrayOfString')
+        return_values.string = ['Owner', 'Name', 'FirstName', 'Country',
                                 'APIException', 'Note', 'InvoiceLanguage',
                                 'Type', 'Username', 'IncorporationDate',
                                 'DateCreated', 'Status', 'BankAccountNo',
@@ -177,29 +177,29 @@ class TwentyFour(object):
         for key, value in kwargs.iteritems():
             setattr(params, key, value)
 
-        status, result = client.service.GetCompanies(params, ArrayOfString)
+        status, result = client.service.GetCompanies(params, return_values)
         assert status == 200, 'GetCompanies failed: %s' % status
 
         if 'Company' not in result:
             return None
         return [c for c in result.Company]
 
-    def saveCompany(self, name, companyType='Supplier', **kwargs):
+    def save_company(self, name, company='Supplier', **kwargs):
         r'''
         Create or update a Company
         set parameter Id to update an existing company
         '''
-        client = self.getClient('Company')
+        client = self.get_client('Company')
 
-        CompanyType = client.factory.create('CompanyType')
-        CurrencyType = client.factory.create('CurrencyType')
+        company_type = client.factory.create('CompanyType')
+        currency_type = client.factory.create('CurrencyType')
 
         company = client.factory.create('Company')
         company.Name = name
-        company.Type = getattr(CompanyType, companyType)  # default: Leverandor
+        company.Type = getattr(company_type, company)  # default: Leverandor
         company.Country = 'NO'
         company.InvoiceLanguage = 'NO'
-        company.CurrencyId = CurrencyType.NOK
+        company.CurrencyId = currency_type.NOK
 
         # email
         company.EmailAddresses.Work.Value = kwargs.pop('email_work', None)
@@ -214,46 +214,46 @@ class TwentyFour(object):
             setattr(company, key, value)
 
         # Send a list of companies
-        ArrayOfCompany = client.factory.create('ArrayOfCompany')
-        ArrayOfCompany.Company = [company, ]
+        company_list = client.factory.create('ArrayOfCompany')
+        company_list.Company = [company, ]
 
         # Save/store companies in the list
-        status, result = client.service.SaveCompanies(ArrayOfCompany)
+        status, result = client.service.SaveCompanies(company_list)
         assert status == 200, 'SaveCompanies failed: %s' % status
 
         if 'Company' not in result:
             return []
         return [c for c in result.Company]
 
-    def listCompanyCategories(self, CompanyId):
-        client = self.getClient('Company')
-        status, result = client.service.GetCustomerCategories(CompanyId)
+    def list_company_categories(self, company_id):
+        client = self.get_client('Company')
+        status, result = client.service.GetCustomerCategories(company_id)
         assert status == 200, 'GetCustomerCategories failed: %s' % status
         if 'int' not in result:
             return []
         return result.int
 
-    def saveCompanyCategories(self, CompanyId, categories):
-        client = self.getClient('Company')
+    def save_company_categories(self, company_id, categories):
+        client = self.get_client('Company')
 
-        available_categories = self.listCategories()
+        available_categories = self.list_categories()
 
-        ArrayOfKeyValuePair = client.factory.create('ArrayOfKeyValuePair')
+        category_list = client.factory.create('ArrayOfKeyValuePair')
         for cat in categories:
-            KeyValuePair = client.factory.create('KeyValuePair')
+            pair = client.factory.create('KeyValuePair')
             for tmp in available_categories:
                 if tmp.Name == cat:
                     print 'Adding category: %s - %s' % (tmp.Id, tmp.Name)
-                    KeyValuePair.Key = tmp.Id
-                    KeyValuePair.Value = CompanyId
-                    ArrayOfKeyValuePair.KeyValuePair.append(KeyValuePair)
+                    pair.Key = tmp.Id
+                    pair.Value = company_id
+                    category_list.KeyValuePair.append(pair)
 
-        status, result = client.service.SaveCustomerCategories(ArrayOfKeyValuePair)
+        status, result = client.service.SaveCustomerCategories(category_list)
         assert status == 200, 'SaveCustomerCategories failed: %s' % status
         return result
 
-    def listCategories(self):
-        client = self.getClient('Company')
+    def list_categories(self):
+        client = self.get_client('Company')
         status, result = client.service.GetCategories()
         assert status == 200, 'GetCategories failed: %s' % status
         return [c for c in result.Category]
