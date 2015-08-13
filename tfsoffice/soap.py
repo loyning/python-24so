@@ -184,19 +184,29 @@ class TwentyFour(object):
             return None
         return [c for c in result.Company]
 
-    def save_company(self, name, company='Supplier', **kwargs):
+    def save_company(self, name, company_type='Supplier', **kwargs):
         r'''
         Create or update a Company
         set parameter Id to update an existing company
+        Available kwargs:
+        - Name (as param)
+        - InvoiceLanguage
+        - Owner (user id)
+        - BankAccountNo
+        - TypeGroup
+        - Country
+        - email_work
+        - email_invoice
+        - phone
         '''
         client = self.get_client('Company')
 
-        company_type = client.factory.create('CompanyType')
+        company_types = client.factory.create('CompanyType')
         currency_type = client.factory.create('CurrencyType')
 
         company = client.factory.create('Company')
         company.Name = name
-        company.Type = getattr(company_type, company)  # default: Leverandor
+        company.Type = getattr(company_types, company_type)  # default: Leverandor
         company.Country = 'NO'
         company.InvoiceLanguage = 'NO'
         company.CurrencyId = currency_type.NOK
