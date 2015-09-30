@@ -2,7 +2,7 @@
 
 from soap import TwentyFour # noqa
 
-__version__ = '0.0.5'
+__version__ = '0.0.6'
 
 RELATED_DOCS_TEXT = "See https://github.com/loyning/python-24so \
 for usage examples."

@@ -150,7 +150,7 @@ class TwentyFour(object):
     def list_companies(self, **kwargs):
         r'''
         List companies by:
-        CustomerId
+        CompanyId
         CompanyName (do not use *)
         ChangedAfter
         '''
@@ -171,7 +171,7 @@ class TwentyFour(object):
                                 'DateCreated', 'Status', 'BankAccountNo',
                                 'TypeGroup', 'IndustryId', 'MemberNo',
                                 'DistributionMethod', 'EmailAddresses',
-                                'PhoneNumbers', 'Maps', 'Relations']
+                                'PhoneNumbers', 'Maps', 'Relations', 'CurrencyId']
 
         params = client.factory.create('CompanySearchParameters')
         for key, value in kwargs.iteritems():
@@ -202,14 +202,15 @@ class TwentyFour(object):
         client = self.get_client('Company')
 
         company_types = client.factory.create('CompanyType')
-        currency_type = client.factory.create('CurrencyType')
+        # currency_type = client.factory.create('CurrencyType')
 
         company = client.factory.create('Company')
         company.Name = name
         company.Type = getattr(company_types, company_type)  # default: Leverandor
         company.Country = 'NO'
         company.InvoiceLanguage = 'NO'
-        company.CurrencyId = currency_type.NOK
+        # not needed, works better with default = None
+        # company.CurrencyId = currency_type.NOK
 
         # email
         company.EmailAddresses.Work.Value = kwargs.pop('email_work', None)
