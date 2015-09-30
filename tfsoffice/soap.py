@@ -116,7 +116,7 @@ class TwentyFour(object):
         client = self.get_client('Project')
         status, result = client.service.SaveProject(project)
         assert status == 200, 'SaveProject is not ok: %s' % status
-        print '-- SaveProject OK (update) --'
+        # print '-- SaveProject OK (update) --'
         logging.info('Project [%s] saved' % project.Id)
 
     def find_project(self, **kwargs):
@@ -168,7 +168,7 @@ class TwentyFour(object):
         return_values.string = ['Owner', 'Name', 'FirstName', 'Country',
                                 'APIException', 'Note', 'InvoiceLanguage',
                                 'Type', 'Username', 'IncorporationDate',
-                                'DateCreated', 'Status', 'BankAccountNo',
+                                'DateCreated', 'DateChanged', 'Status', 'BankAccountNo',
                                 'TypeGroup', 'IndustryId', 'MemberNo',
                                 'DistributionMethod', 'EmailAddresses',
                                 'PhoneNumbers', 'Maps', 'Relations', 'CurrencyId']
@@ -254,7 +254,7 @@ class TwentyFour(object):
             pair = client.factory.create('KeyValuePair')
             for tmp in available_categories:
                 if tmp.Name == cat:
-                    print 'Adding category: %s - %s' % (tmp.Id, tmp.Name)
+                    # print 'Adding category: %s - %s' % (tmp.Id, tmp.Name)
                     pair.Key = tmp.Id
                     pair.Value = company_id
                     category_list.KeyValuePair.append(pair)
