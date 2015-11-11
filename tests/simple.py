@@ -19,10 +19,10 @@ def main(username, password, applicationid):
     #                 phone='123456789')
 
     # list companies
-    # print 'CustomerId 433: ', api.list_companies(CompanyId=433)
-    # print '-- Categories --'
-    # print api.list_company_categories(433)
-    # print 'CustomerName *elias: ', api.list_companies(CompanyName='elias')
+    print 'CustomerId 210: ', api.list_companies(CompanyId=210)
+    print '-- Categories --'
+    print api.list_company_categories(210)
+    print 'CustomerName *elias: ', api.list_companies(CompanyName='maraton')
 
     # save company categories
     # result = api.save_companyCategories(

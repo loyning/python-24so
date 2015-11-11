@@ -116,7 +116,6 @@ class TwentyFour(object):
         client = self.get_client('Project')
         status, result = client.service.SaveProject(project)
         assert status == 200, 'SaveProject is not ok: %s' % status
-        # print '-- SaveProject OK (update) --'
         logging.info('Project [%s] saved' % project.Id)
 
     def find_project(self, **kwargs):
@@ -207,6 +206,7 @@ class TwentyFour(object):
         company = client.factory.create('Company')
         company.Name = name
         company.Type = getattr(company_types, company_type)  # default: Leverandor
+        # country can be set with kwargs Country and InvoiceCountry
         company.Country = 'NO'
         company.InvoiceLanguage = 'NO'
         # not needed, works better with default = None
