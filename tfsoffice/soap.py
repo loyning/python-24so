@@ -167,7 +167,8 @@ class TwentyFour(object):
 
         # returnProperties
         return_values = client.factory.create('ArrayOfString')
-        return_values.string = ['Owner', 'Name', 'FirstName', 'Country',
+        return_values.string = ['OrganizationNumber', 'Owner', 'Name', 'FirstName', 'NickName',
+                                'Country', 'Status',
                                 'APIException', 'Note', 'InvoiceLanguage',
                                 'Type', 'Username', 'IncorporationDate',
                                 'DateCreated', 'DateChanged', 'Status', 'BankAccountNo',
