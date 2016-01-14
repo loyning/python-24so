@@ -140,7 +140,10 @@ class TwentyFour(object):
 
         # search for projects
         status, projects = client.service.GetProjectList(project_search)
-        assert status == 200, 'GetProjectList failed: %s' % status
+        if status != 200:
+            logger.error('24so find_project: %s - %s' % (status, projects))
+
+        assert status == 200, 'GetProjectList failed: %s, %s' % (status, str(kwargs))
         if 'Project' not in projects:
             return None
         projects = [p for p in projects.Project]
@@ -177,7 +180,9 @@ class TwentyFour(object):
             setattr(params, key, value)
 
         status, result = client.service.GetCompanies(params, return_values)
-        assert status == 200, 'GetCompanies failed: %s' % status
+        if status != 200:
+            logger.error('24so list_companies: %s - %s' % (status, result))
+        assert status == 200, 'GetCompanies failed: %s, %s - %s' % (status, kwargs.get('CompanyId'), kwargs.get('CompanyName'))
 
         if 'Company' not in result:
             return None
