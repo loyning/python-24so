@@ -1,7 +1,8 @@
 import logging
 from suds.client import Client
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('suds.client').setLevel(logging.INFO)
+logger = logging.getLogger('suds.client')
+# logger.setLevel(logging.INFO)
 
 # http://developer.24sevenoffice.com/#apiauthenticate
 # http://developer.24sevenoffice.com/category/dev/#apiinvoiceservice
