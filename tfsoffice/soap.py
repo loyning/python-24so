@@ -55,7 +55,9 @@ class TwentyFour(object):
         # authenticate
         status, session_id = self._authenticate(
             username, password, applicationid)
-        assert status == 200, 'Status is not OK: %s' % status
+        if status != 200:
+            logger.error('Cannot authenticate with 24so, Status is not OK: %s - %s' % (status, session_id))
+        assert status == 200, 'Cannot authenticate with 24so, Status is not OK: %s' % status
         logging.debug('Authenticated OK as %s' % username)
         # store session id
         self._session_id = session_id
