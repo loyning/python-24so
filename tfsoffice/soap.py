@@ -191,7 +191,7 @@ class TwentyFour(object):
                                 'Type', 'Username', 'IncorporationDate',
                                 'DateCreated', 'DateChanged', 'Status', 'BankAccountNo',
                                 'TypeGroup', 'IndustryId', 'MemberNo',
-                                'DistributionMethod', 'EmailAddresses',
+                                'DistributionMethod', 'EmailAddresses', 'Addresses',
                                 'PhoneNumbers', 'Maps', 'Relations', 'CurrencyId']
 
         params = client.factory.create('CompanySearchParameters')
