@@ -46,6 +46,21 @@ class TwentyFour(object):
         'FileInfo':
             'https://webservices.24sevenoffice.com/file/V001/' +
             'FileInfoService.asmx?wsdl',
+        'Attachment':
+            'https://webservices.24sevenoffice.com/Economy/Accounting/Accounting_V001/' +
+            'AttachmentService.asmx?WSDL',
+        'SalesOpp':
+            'https://webservices.24sevenoffice.com/SalesOpp/V001/' +
+            'SalesOppService.asmx?WSDL',
+        'Invitation':
+            'https://webservices.24sevenoffice.com/Invitation/' +
+            'Invitation_V001/InvitationService.asmx?WSDL',
+        'Time':
+            'http://webservices.24sevenoffice.com/timesheet/v001/' +
+            'timeservice.asmx?WSDL',
+        'Account':
+            'http://webservices.24sevenoffice.com/Economy/Account/' +
+            'AccountService.asmx?WSDL',
     }
     _clients = {}
 
@@ -216,8 +231,8 @@ class TwentyFour(object):
         company.Name = name
         company.Type = getattr(company_types, company_type)  # default: Leverandor
         # country can be set with kwargs Country and InvoiceCountry
-        company.Country = 'NO'
-        company.InvoiceLanguage = 'NO'
+        company.Country = kwargs.pop('Country', 'NO')
+        company.InvoiceLanguage = kwargs.pop('InvoiceLanguage', 'NO')
         # not needed, works better with default = None
         # company.CurrencyId = currency_type.NOK
 
