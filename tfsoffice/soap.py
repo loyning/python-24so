@@ -71,7 +71,7 @@ class TwentyFour(object):
         status, session_id = self._authenticate(
             username, password, applicationid)
         if status != 200:
-            logger.error('Cannot authenticate with 24so, Status is not OK: %s - %s' % (status, session_id))
+            logger.warning('Cannot authenticate with 24so, Status is not OK: %s - %s' % (status, session_id))
         assert status == 200, 'Cannot authenticate with 24so, Status is not OK: %s' % status
         logging.debug('Authenticated OK as %s' % username)
         # store session id
@@ -159,7 +159,7 @@ class TwentyFour(object):
         # search for projects
         status, projects = client.service.GetProjectList(project_search)
         if status != 200:
-            logger.error('24so find_project: %s - %s' % (status, projects))
+            logger.warning('24so find_project: %s - %s' % (status, projects))
 
         assert status == 200, 'GetProjectList failed: %s, %s' % (status, str(kwargs))
         if 'Project' not in projects:
@@ -200,7 +200,7 @@ class TwentyFour(object):
 
         status, result = client.service.GetCompanies(params, return_values)
         if status != 200:
-            logger.error('24so list_companies: %s - %s' % (status, result))
+            logger.warning('24so list_companies: %s - %s' % (status, result))
         assert status == 200, 'GetCompanies failed: %s, %s - %s' % (status, kwargs.get('CompanyId'), kwargs.get('CompanyName'))
 
         if 'Company' not in result:
