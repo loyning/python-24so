@@ -1,5 +1,6 @@
 import logging
 from suds.client import Client
+# from .utils import node_to_dict
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('suds.client')
 # logger.setLevel(logging.INFO)
@@ -106,9 +107,9 @@ class TwentyFour(object):
         return self._clients[name]
 
     def create_project(self, name):
-        r'''
+        r"""
         Project
-        '''
+        """
         client = self.get_client('Project')
         project_name_type = client.factory.create('ProjectNameType')
 
@@ -128,17 +129,18 @@ class TwentyFour(object):
         return project
 
     def save_project(self, project):
-        r'''
+        r"""
         Project
-        '''
+        """
         client = self.get_client('Project')
         status, result = client.service.SaveProject(project)
         assert status == 200, 'SaveProject is not ok: %s' % status
         logging.info('Project [%s] saved' % project.Id)
 
     def find_project(self, **kwargs):
-        r'''
+        r"""
         Only accepts ONE parameter at a time.
+
         CustomerId int
         Search string
         ChangedAfter datetime
@@ -147,7 +149,7 @@ class TwentyFour(object):
         MyProjects bool
         AllOpenProjects bool
         http://developer.24sevenoffice.com/hidden/webserviceprojectservicev001-datatypes/
-        '''
+        """
         # get project client
         client = self.get_client('Project')
 
@@ -167,13 +169,18 @@ class TwentyFour(object):
         projects = [p for p in projects.Project]
         return projects
 
+    def get_company(self, CompanyId):  # noqa
+        companies = self.list_companies(CompanyId=CompanyId)
+        return companies[0]
+
     def list_companies(self, **kwargs):
-        r'''
+        r"""
         List companies by:
+
         CompanyId
         CompanyName (do not use *)
         ChangedAfter
-        '''
+        """
         # validate params
         assert kwargs.get('CompanyId') \
             or kwargs.get('CompanyName') \
@@ -208,8 +215,9 @@ class TwentyFour(object):
         return [c for c in result.Company]
 
     def save_company(self, name, company_type='Supplier', **kwargs):
-        r'''
+        r"""
         Create or update a Company
+
         set parameter Id to update an existing company
         Available kwargs:
         - Name (as param)
@@ -221,7 +229,7 @@ class TwentyFour(object):
         - email_work
         - email_invoice
         - phone
-        '''
+        """
         client = self.get_client('Company')
 
         company_types = client.factory.create('CompanyType')
