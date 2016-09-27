@@ -1,0 +1,2 @@
+class TooManyResultsException(Exception):
+    pass

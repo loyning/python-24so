@@ -1,5 +1,6 @@
 import logging
 from suds.client import Client
+import exceptions
 # from .utils import node_to_dict
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('suds.client')
@@ -171,6 +172,10 @@ class TwentyFour(object):
 
     def get_company(self, CompanyId):  # noqa
         companies = self.list_companies(CompanyId=CompanyId)
+        if not companies or len(companies) == 0:
+            return None
+        elif len(companies) > 1:
+            raise exceptions.TooManyResultsException()
         return companies[0]
 
     def list_companies(self, **kwargs):
