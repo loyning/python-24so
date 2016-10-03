@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from suds.sax.text import Text
 from types import NoneType, InstanceType
 import datetime
@@ -8,7 +9,7 @@ def node_to_dict(node):
     if type(node) is str or type(node) is unicode:
         return node
     elif type(node) is Text:
-        return node.decode('utf-8')
+        return unicode(node)
     elif type(node) is int:
         return node
     elif type(node) is bool:
