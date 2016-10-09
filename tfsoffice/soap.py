@@ -137,6 +137,7 @@ class TwentyFour(object):
         status, result = client.service.SaveProject(project)
         assert status == 200, 'SaveProject is not ok: %s' % status
         logging.info('Project [%s] saved' % project.Id)
+        return result
 
     def find_project(self, **kwargs):
         r"""
