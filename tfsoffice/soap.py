@@ -107,6 +107,14 @@ class TwentyFour(object):
         logging.debug('Created new service: %s' % name)
         return self._clients[name]
 
+    def get_project(self, project_id):
+        """
+        Load a single project
+        """
+        client = self.get_client('Project')
+        status, project = client.service.GetSingleProject(project_id)
+        assert status == 200, 'GetSingleProject is not ok: %s' % status
+
     def create_project(self, name):
         r"""
         Project
