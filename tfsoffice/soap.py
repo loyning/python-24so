@@ -114,6 +114,7 @@ class TwentyFour(object):
         client = self.get_client('Project')
         status, project = client.service.GetSingleProject(project_id)
         assert status == 200, 'GetSingleProject is not ok: %s' % status
+        return project
 
     def create_project(self, name):
         r"""
