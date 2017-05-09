@@ -1,1 +1,1 @@
-from . import companies, projects  # noqa
+from . import companies, projects, payments, invoice, time  # noqa
