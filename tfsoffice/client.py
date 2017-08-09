@@ -1,29 +1,16 @@
 # -*- coding: utf-8 -*-
 from types import ModuleType
-# import json
-# import platform
-# import time
 
 from suds.client import Client as SudsClient
 from suds.sax.text import Text
 from .utils import node_to_dict
+from . import resources
+# from . import error, resources, __version__  # noqa
 
 import string
 import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('suds.client')
-
-
-# import requests
-
-# from . import error, resources, session, __version__  # noqa
-from . import error, resources, __version__  # noqa
-# from .page_iterator import CollectionPageIterator
-
-# try:
-#     import urllib.parse as urlparse
-# except ImportError:
-#     import urllib as urlparse
 
 # Create a dict of resource classes
 RESOURCE_CLASSES = {}
@@ -33,16 +20,44 @@ for name, module in resources.__dict__.items():
         RESOURCE_CLASSES[name] = module.__dict__[classified_name]
 
 # Create a mapping of status codes to classes
-STATUS_MAP = {}
-for name, Klass in error.__dict__.items():
-    if isinstance(Klass, type) and issubclass(Klass, error.AsanaError):
-        STATUS_MAP[Klass().status] = Klass
+# STATUS_MAP = {}
+# for name, Klass in error.__dict__.items():
+#     if isinstance(Klass, type) and issubclass(Klass, error.AsanaError):
+#         STATUS_MAP[Klass().status] = Klass
 
 
 class Client:
-    """24sevenoffice client class"""
+    """
+    API client for 24SevenOffice
 
-    DEFAULTS = {
+    There are three services ready: PersonService, CompanyService and ProjectService
+    For more information: http://developer.24sevenoffice.com/
+
+    --------
+
+    api = Client(username, password, apikey)
+
+    # search for person by name
+    people = api.persons.find_by_name('rune')
+
+    if len(people):
+        # get detailed info about a person
+        person = api.persons.find_by_id(people[0]['Id'])
+
+    # list all projects assigned to you
+    projects = api.projects.find_mine()
+
+    # search for a company
+    customers = api.companies.find_by_name('dataselskapet')
+
+    # get detailed information about a company
+    dataselskapet = api.companies.find_by_id(102)
+
+    # list all projects assigned to a company
+    projects = api.projects.find_by_customerid(102)
+    """
+
+    _DEFAULTS = {
         'base_url': 'https://api.24sevenoffice.com/',
         'item_limit': None,
         'page_size': 50,
@@ -52,16 +67,6 @@ class Client:
         'iterator_type': 'items'
     }
 
-    RETRY_DELAY = 1.0
-    RETRY_BACKOFF = 2.0
-
-    CLIENT_OPTIONS = set(DEFAULTS.keys())
-    QUERY_OPTIONS = set(['limit', 'offset', 'sync'])
-    REQUEST_OPTIONS = set(['headers', 'params', 'data', 'files', 'verify'])
-    API_OPTIONS = set(['pretty', 'fields', 'expand'])
-
-    ALL_OPTIONS = CLIENT_OPTIONS | QUERY_OPTIONS | REQUEST_OPTIONS | API_OPTIONS
-
     _services = {
         'Authenticate':
             'https://api.24sevenoffice.com/authenticate/' +
@@ -69,6 +74,8 @@ class Client:
         'Project':
             'http://webservices.24sevenoffice.com/Project/V001/' +
             'ProjectService.asmx?WSDL',
+        'Person':
+            'https://webservices.24sevenoffice.com/CRM/Contact/PersonService.asmx?WSDL',
         'Template':
             'https://api.24sevenoffice.com/CRM/Template/V001/' +
             'TemplateService.asmx?WSDL',
@@ -131,9 +138,8 @@ class Client:
         self._session_id = session_id
         self._headers = {'Cookie': 'ASP.NET_SessionId=%s' % self._session_id}
 
-        self.auth = auth
         # merge the provided options (if any) with the global DEFAULTS
-        self.options = _merge(self.DEFAULTS, options)
+        self._options = _merge(self._DEFAULTS, options)
         # intializes each resource, injecting this client object into the constructor
         for name, Klass in RESOURCE_CLASSES.items():
             setattr(self, name, Klass(self))
@@ -153,7 +159,7 @@ class Client:
         cred.Password = password
         return client.service.Login(cred)
 
-    def get_client(self, name):
+    def _get_client(self, name):
         if name in self._clients:
             return self._clients[name]
 
@@ -165,38 +171,37 @@ class Client:
         logging.debug('Created new service: %s' % name)
         return self._clients[name]
 
-    # .client.get(method, params, return_values=return_values, **options)
-    def get(self, method, params, **options):
+    def _get(self, method, params, **options):
         """Parse GET request options and dispatches a request."""
-        # api_options = self._parse_api_options(options, query_string=True)
-        # query_options = self._parse_query_options(options)
-        # parameter_options = self._parse_parameter_options(options)
-        # query = _merge(query_options, api_options, parameter_options, query)  # options in the query takes precendence
-        # return self.request('get', path, params=query, **options)
         return_values = options.pop('return_values', None)
         if return_values:
             status, result = method(params, return_values)
         else:
             status, result = method(params)
+
         assert status == 200, 'Status is %s' % status
-        if type(result[0]) is list:
+
+        if type(result) is Text:
+            logger.info('Found 0 results')
+            return None
+        elif type(result[0]) is list:
             result = result[0][0]
         data = node_to_dict(result)
         return data
 
-    def get_collection(self, method, params, **options):
+    def _get_collection(self, method, params, **options):
         """Parse GET request options for a collection endpoint and dispatches a request."""
-        # options = self._merge_options(options)
-
         return_values = options.pop('return_values', None)
         if return_values:
             status, results = method(params, return_values)
         else:
             status, results = method(params)
+
         assert status == 200, 'Status is %s' % status
+
         if type(results) is Text:
-            print 'Found NO results'
-            return [0]
+            logger.info('Found 0 results')
+            return []
         assert type(results[0]) is list, 'Expected list from API, got %s' % type(results[0])
 
         output = []
@@ -204,12 +209,6 @@ class Client:
             data = node_to_dict(result)
             output.append(data)
         return output
-
-        # if options['iterator_type'] == 'items':
-        #     return CollectionPageIterator(self, path, query, options).items()
-        # if options['iterator_type'] is None:
-        #     return self.get(path, query, **options)
-        # raise Exception('Unknown value for "iterator_type" option: ' + str(options['iterator_type']))
 
 
 def _merge(*objects):

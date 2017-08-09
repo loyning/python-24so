@@ -1,7 +1,13 @@
+"""
+!!!
+
+This is the OLD Api - only included for backwards compability
+
+!!!
+"""
 import logging
 from suds.client import Client
 import exceptions
-# from .utils import node_to_dict
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('suds.client')
 # logger.setLevel(logging.INFO)

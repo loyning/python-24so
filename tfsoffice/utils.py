@@ -18,6 +18,8 @@ def node_to_dict(node):
         return node
     elif type(node) is float:
         return node
+    elif type(node) is long:
+        return node
     elif type(node) is NoneType:
         return node
     elif type(node) is list:

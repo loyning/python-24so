@@ -1,7 +1,7 @@
 class Companies:
     def __init__(self, client=None):
-        self.client = client
-        self.service = 'Company'
+        self._client = client
+        self._service = 'Company'
 
     def _get_return_values(self, api):
         return_values = api.factory.create('ArrayOfString')
@@ -15,8 +15,8 @@ class Companies:
                                 'PhoneNumbers', 'Maps', 'Relations', 'CurrencyId']
         return return_values
 
-    def find_by_id(self, company_id, params={}, **options):
-        api = self.client.get_client(self.service)
+    def find_by_id(self, company_id):
+        api = self._client._get_client(self._service)
 
         return_values = self._get_return_values(api)
 
@@ -25,10 +25,10 @@ class Companies:
 
         method = api.service.GetCompanies
 
-        return self.client.get(method, params, return_values=return_values, **options)
+        return self._client._get(method, params, return_values=return_values)
 
-    def find_by_name(self, name, params={}, **options):
-        api = self.client.get_client(self.service)
+    def find_by_name(self, name):
+        api = self._client._get_client(self._service)
         return_values = self._get_return_values(api)
 
         params = api.factory.create('CompanySearchParameters')
@@ -36,10 +36,10 @@ class Companies:
 
         method = api.service.GetCompanies
 
-        return self.client.get_collection(method, params, return_values=return_values, **options)
+        return self._client._get_collection(method, params, return_values=return_values)
 
-    def find_by_date_changed(self, changed, params={}, **options):
-        api = self.client.get_client(self.service)
+    def find_by_date_changed(self, changed):
+        api = self._client._get_client(self._service)
         return_values = self._get_return_values(api)
 
         params = api.factory.create('CompanySearchParameters')
@@ -47,4 +47,4 @@ class Companies:
 
         method = api.service.GetCompanies
 
-        return self.client.get_collection(method, params, return_values=return_values, **options)
+        return self._client._get_collection(method, params, return_values=return_values)
