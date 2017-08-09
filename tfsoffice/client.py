@@ -71,50 +71,53 @@ class Client:
         'Authenticate':
             'https://api.24sevenoffice.com/authenticate/' +
             'v001/authenticate.asmx?WSDL',
-        'Project':
-            'http://webservices.24sevenoffice.com/Project/V001/' +
-            'ProjectService.asmx?WSDL',
-        'Person':
-            'https://webservices.24sevenoffice.com/CRM/Contact/PersonService.asmx?WSDL',
-        'Template':
-            'https://api.24sevenoffice.com/CRM/Template/V001/' +
-            'TemplateService.asmx?WSDL',
-        'Company':
-            'https://api.24sevenoffice.com/CRM/Company/V001/' +
-            'CompanyService.asmx?WSDL',
-        'Product':
-            'https://api.24sevenoffice.com/Logistics/Product/V001/' +
-            'ProductService.asmx?WSDL',
-        'Invoice':
-            'https://api.24sevenoffice.com/Economy/InvoiceOrder/V001/' +
-            'InvoiceService.asmx?WSDL',
+        'Account':
+            'https://webservices.24sevenoffice.com/Economy/Account/' +
+            'AccountService.asmx?WSDL',
+        'Attachment':
+            'https://webservices.24sevenoffice.com/Economy/Accounting/Accounting_V001/' +
+            'AttachmentService.asmx?WSDL',
         'Client':
             'https://api.24sevenoffice.com/Client/V001/' +
             'ClientService.asmx?WSDL',
-        'Transaction':
-            'https://api.24sevenoffice.com/Economy/Accounting/V001/' +
-            'TransactionService.asmx?WSDL',
+        'Company':
+            'https://api.24sevenoffice.com/CRM/Company/V001/' +
+            'CompanyService.asmx?WSDL',
         'File':
             'https://webservices.24sevenoffice.com/file/V001/' +
             'FileService.asmx?wsdl',
         'FileInfo':
             'https://webservices.24sevenoffice.com/file/V001/' +
             'FileInfoService.asmx?wsdl',
-        'Attachment':
-            'https://webservices.24sevenoffice.com/Economy/Accounting/Accounting_V001/' +
-            'AttachmentService.asmx?WSDL',
-        'SalesOpp':
-            'https://webservices.24sevenoffice.com/SalesOpp/V001/' +
-            'SalesOppService.asmx?WSDL',
         'Invitation':
             'https://webservices.24sevenoffice.com/Invitation/' +
             'Invitation_V001/InvitationService.asmx?WSDL',
+        'Invoice':
+            'https://api.24sevenoffice.com/Economy/InvoiceOrder/V001/' +
+            'InvoiceService.asmx?WSDL',
+        'Payment':
+            'https://api.24sevenoffice.com/Economy/InvoiceOrder/V001/' +
+            'PaymentService.asmx?WSDL',
+        'Person':
+            'https://webservices.24sevenoffice.com/CRM/Contact/PersonService.asmx?WSDL',
+        'Product':
+            'https://api.24sevenoffice.com/Logistics/Product/V001/' +
+            'ProductService.asmx?WSDL',
+        'Project':
+            'https://webservices.24sevenoffice.com/Project/V001/' +
+            'ProjectService.asmx?WSDL',
+        'SalesOpp':
+            'https://webservices.24sevenoffice.com/SalesOpp/V001/' +
+            'SalesOppService.asmx?WSDL',
+        'Template':
+            'https://api.24sevenoffice.com/CRM/Template/V001/' +
+            'TemplateService.asmx?WSDL',
         'Time':
-            'http://webservices.24sevenoffice.com/timesheet/v001/' +
+            'https://webservices.24sevenoffice.com/timesheet/v001/' +
             'timeservice.asmx?WSDL',
-        'Account':
-            'http://webservices.24sevenoffice.com/Economy/Account/' +
-            'AccountService.asmx?WSDL',
+        'Transaction':
+            'https://api.24sevenoffice.com/Economy/Accounting/V001/' +
+            'TransactionService.asmx?WSDL',
     }
     _clients = {}
     _session_id = None
@@ -122,9 +125,10 @@ class Client:
     _faults = False
 
     def __init__(self, username, password, applicationid, session=None, auth=None, faults=False, **options):  # noqa
-        """Initialize a Client object with session, optional auth handler, and options"""
+        """
+        Initialize a Client object with session, optional auth handler, and options
+        """
         # self.session = session or requests.Session()
-
         self._faults = faults
 
         # authenticate
@@ -140,6 +144,7 @@ class Client:
 
         # merge the provided options (if any) with the global DEFAULTS
         self._options = _merge(self._DEFAULTS, options)
+
         # intializes each resource, injecting this client object into the constructor
         for name, Klass in RESOURCE_CLASSES.items():
             setattr(self, name, Klass(self))
@@ -160,6 +165,12 @@ class Client:
         return client.service.Login(cred)
 
     def _get_client(self, name):
+        """
+        Return a client
+
+        TODO change name to: get_handler ?
+        get_api ?
+        """
         if name in self._clients:
             return self._clients[name]
 
@@ -190,24 +201,42 @@ class Client:
         return data
 
     def _get_collection(self, method, params, **options):
-        """Parse GET request options for a collection endpoint and dispatches a request."""
+        """
+        Parse GET request options for a collection endpoint and dispatches a request.
+        """
+        # create output
+        output = dict(
+            count=0,
+            results=[]
+        )
+
+        # execute -> backend
         return_values = options.pop('return_values', None)
         if return_values:
             status, results = method(params, return_values)
         else:
             status, results = method(params)
 
-        assert status == 200, 'Status is %s' % status
+        # assert status == 200, 'Status is %s' % status
+        # if type(results) is Text:
+        #     logger.info('Found 0 results')
+        #     return []
 
+        output['status_code'] = status
+
+        # check response
+        # assert status == 200, 'Status is %s' % status
         if type(results) is Text:
-            logger.info('Found 0 results')
-            return []
+            return output
+
+        # raise Exception if result is anything but a List
         assert type(results[0]) is list, 'Expected list from API, got %s' % type(results[0])
 
-        output = []
+        # Convert to JSON
         for result in results[0]:
             data = node_to_dict(result)
-            output.append(data)
+            output['results'].append(data)
+        output['count'] = len(output['results'])
         return output
 
 

@@ -1,12 +1,18 @@
 # API client for 24SevenOffice
-There are three services ready
+There following services are available:
 - PersonService
 - CompanyService
 - ProjectService
+- InvoiceService
+- PaymentService
+- TimeService (partially)
 For more information: http://developer.24sevenoffice.com/
 
 ## API calls
-- Searching returns a list with dict or empty list
+- Searching returns a dict:
+  ```json
+  {"count": 0, "results": [], "status_code": 200}
+  ```
 - Fetching detailed information, ex. find_by_id, returns a dict or None
 
 ## Usage

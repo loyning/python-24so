@@ -1,4 +1,2 @@
-#
-# Runtime dependencies.
-#
 suds-fc==0.4.1
+zeep
