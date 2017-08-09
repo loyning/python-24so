@@ -52,7 +52,7 @@ class Projects:
         else:
             method = api.service.GetProjectList
 
-        return self.client.get_collection(method, params)
+        return self._client._get_collection(method, params)
 
     def find_by_date_changed(self, changed, detailed=False, **options):
         """
@@ -60,7 +60,7 @@ class Projects:
 
         Returns a list of Projects
         """
-        api = self.client.get_client(self.service)
+        api = self._client._get_client(self._service)
 
         params = api.factory.create('ProjectSearch')
         params.ChangedAfter = changed

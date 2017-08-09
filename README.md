@@ -30,9 +30,10 @@ api = Client(username, password, apikey)
 # search for person by name
 people = api.persons.find_by_name('rune')
 
-if len(people):
+if people['count']:
     # get detailed info about a person
-    person = api.persons.find_by_id(people[0]['Id'])
+    person_id = people['results'][0]['Id']
+    person = api.persons.find_by_id(person_id)
 
 # list all projects assigned to you
 projects = api.projects.find_mine()
@@ -44,5 +45,14 @@ customers = api.companies.find_by_name('dataselskapet')
 dataselskapet = api.companies.find_by_id(102)
 
 # list all projects assigned to a company
-projects = api.projects.find_by_customerid(102)
+projects = api.projects.find_by_customerid(59)
+
+# project view
+project = api.projects.find_by_customerid(59)
+
+# project view with more details
+project = api.projects.find_by_customerid(59)
+
+# project view with all details
+project = api.projects.find_by_id(29)
 ```
