@@ -52,9 +52,9 @@ class Persons:
             is_employee = kwargs.pop('IsEmployee')
             state = api.factory.create('TriState')
             if is_employee:
-                params.IsEmployee = state.True
+                params.IsEmployee = state['True']
             else:
-                params.IsEmployee = state.False
+                params.IsEmployee = state['False']
 
         if 'ChangedAfter' in kwargs:
             changed_after = kwargs.pop('ChangedAfter')
@@ -75,7 +75,7 @@ class Persons:
         state = api.factory.create('TriState')
 
         params = api.factory.create('PersonSearchParameters')
-        params.IsEmployee = state.True
+        params.IsEmployee = state['True']
 
         method = api.service.GetPersonIdsByUserName
 

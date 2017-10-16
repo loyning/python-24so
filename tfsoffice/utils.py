@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from suds.sax.text import Text
-from types import NoneType, InstanceType
+from types import InstanceType
 import datetime
 
 
@@ -20,7 +20,8 @@ def node_to_dict(node):
         return node
     elif type(node) is long:
         return node
-    elif type(node) is NoneType:
+    # elif type(node) is NoneType:
+    elif node is None:
         return node
     elif type(node) is list:
         result = []
@@ -33,5 +34,5 @@ def node_to_dict(node):
             result[key] = node_to_dict(value)
         return result
     else:
-        print node
+        # print node
         raise Exception('node_to_dict Unknown type: %s' % type(node))

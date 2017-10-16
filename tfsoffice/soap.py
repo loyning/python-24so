@@ -7,7 +7,7 @@ This is the OLD Api - only included for backwards compability
 """
 import logging
 from suds.client import Client
-import exceptions
+from tfsoffice import exceptions
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('suds.client')
 # logger.setLevel(logging.INFO)

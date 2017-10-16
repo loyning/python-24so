@@ -1,5 +1,5 @@
 #
-# Copyright 2015 Rune Loyning
+# Copyright 2015-2017 Rune Loyning
 #
 # http://github.com/loyning/python-24so
 #
@@ -15,14 +15,11 @@ with open(os.path.join('tfsoffice', '__init__.py')) as init:
     m = re.search("__version__ = '(\d+\.\d+(\.(\d+|[a-z]+))?)'", source, re.M)
     __version__ = m.groups()[0]
 
-with open('README.rst') as readme:
-    long_description = readme.read()
-
 setup(
     name="python-24so",
     version=__version__,
     description='Python wrapper for the 24sevenoffice SOAP api',
-    long_description=long_description,
+    long_description="This API requires a valid account to 24SevenOffice.com and an API key",
     author='Rune Loyning',
     author_email='rune@loyning.net',
     url='http://github.com/loyning/python-24so/',
