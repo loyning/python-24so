@@ -37,6 +37,10 @@ class Client:
 
     api = Client(username, password, apikey)
 
+    # or with sesson_id
+
+    api = Client(username=None, password=None, apikey, session_id=sessionid)
+
     # search for person by name
     people = api.persons.find_by_name('rune')
 
@@ -124,21 +128,29 @@ class Client:
     _headers = None
     _faults = False
 
-    def __init__(self, username, password, applicationid, session=None, auth=None, faults=False, **options):  # noqa
+    def __init__(self, username, password, applicationid, token_id=None, faults=False, **options):  # noqa
         """
         Initialize a Client object with session, optional auth handler, and options
         """
         # self.session = session or requests.Session()
         self._faults = faults
 
-        # authenticate
-        status, session_id = self._authenticate(
-            username, password, applicationid)
-        if status != 200:
-            logger.warning('Cannot authenticate with 24so, Status is not OK: %s - %s' % (status, session_id))
-        assert status == 200, 'Cannot authenticate with 24so, Status is not OK: %s' % status
-        logging.debug('Authenticated OK as %s' % username)
-        # store session id
+        if 'session_id' in options:
+            session_id = options['session_id']
+
+        elif token_id:
+            session_id = self._authenticate_by_token(token_id, applicationid)
+
+        else:
+            # authenticate
+            status, session_id = self._authenticate(
+                username, password, applicationid)
+            if status != 200:
+                logger.warning('Cannot authenticate with 24so, Status is not OK: %s - %s' % (status, session_id))
+            assert status == 200, 'Cannot authenticate with 24so, Status is not OK: %s' % status
+            logging.debug('Authenticated OK as %s' % username)
+            # store session id
+
         self._session_id = session_id
         self._headers = {'Cookie': 'ASP.NET_SessionId=%s' % self._session_id}
 
@@ -163,6 +175,15 @@ class Client:
         cred.Username = username
         cred.Password = password
         return client.service.Login(cred)
+
+    def _authenticate_by_token(self, token_id, applicationid):
+        client = SudsClient(self._services['Authenticate'])
+        token = client.factory.create('Token')
+        token.Id = token_id
+        token.ApplicationId = applicationid
+        passport = client.service.AuthenticateByToken(token)
+
+        return passport.SessionId
 
     def _get_client(self, name):
         """

@@ -6,6 +6,7 @@
 
 import os
 import re
+import sys
 
 from setuptools import find_packages
 from distutils.core import setup
@@ -14,6 +15,10 @@ with open(os.path.join('tfsoffice', '__init__.py')) as init:
     source = init.read()
     m = re.search("__version__ = '(\d+\.\d+(\.(\d+|[a-z]+))?)'", source, re.M)
     __version__ = m.groups()[0]
+
+requirements = ["suds-fc", ]
+if sys.version_info.major == 3:
+    requirements = ["suds-py3", ]
 
 setup(
     name="python-24so",
@@ -27,5 +32,5 @@ setup(
     classifiers=[],
     packages=find_packages(),
     include_package_data=True,
-    install_requires=["suds-fc", ],
+    install_requires=requirements,
 )
