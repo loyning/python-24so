@@ -71,3 +71,17 @@ class Projects:
             method = api.service.GetProjectList
 
         return self._client._get_collection(method, params)
+
+    def list(self, **options):
+        """
+        Find project by ChangedAfter
+
+        Returns a list of Projects
+        """
+        api = self._client._get_client(self._service)
+
+        method = api.service.GetProjectNameList
+
+        return_values = api.factory.create('ProjectShort')
+
+        return self._client._get_collection(method, None, return_values=return_values)

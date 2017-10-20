@@ -123,10 +123,6 @@ class Client:
             'https://api.24sevenoffice.com/Economy/Accounting/V001/' +
             'TransactionService.asmx?WSDL',
     }
-    _clients = {}
-    _session_id = None
-    _headers = None
-    _faults = False
 
     def __init__(self, username, password, applicationid, token_id=None, faults=False, **options):  # noqa
         """
@@ -134,6 +130,9 @@ class Client:
         """
         # self.session = session or requests.Session()
         self._faults = faults
+        self._clients = {}
+        self._session_id = None
+        self._headers = None
 
         if 'session_id' in options:
             session_id = options['session_id']
@@ -145,7 +144,7 @@ class Client:
             # authenticate
             status, session_id = self._authenticate(
                 username, password, applicationid)
-            if status != 200:
+            if status != 200 or session_id is None:
                 logger.warning('Cannot authenticate with 24so, Status is not OK: %s - %s' % (status, session_id))
             assert status == 200, 'Cannot authenticate with 24so, Status is not OK: %s' % status
             logging.debug('Authenticated OK as %s' % username)
