@@ -82,7 +82,7 @@ class Client:
             'https://api.24sevenoffice.com/authenticate/' +
             'v001/authenticate.asmx?WSDL',
         'Account':
-            'https://webservices.24sevenoffice.com/Economy/Account/' +
+            'https://webservices.24sevenoffice.com/economy/accountV002/' +
             'AccountService.asmx?WSDL',
         'Attachment':
             'https://webservices.24sevenoffice.com/Economy/Accounting/Accounting_V001/' +
