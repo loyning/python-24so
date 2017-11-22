@@ -13,6 +13,13 @@ class Accounts:
 
         return self._client._get_collection(method, None)
 
+    def get_taxcode_list(self):
+        api = self._client._get_client(self._service)
+
+        method = api.service.GetTaxCodeList
+
+        return self._client._get_collection(method, None)
+
     # def get_entry_id(self):
     #     api = self._client._get_client(self._service)
 
