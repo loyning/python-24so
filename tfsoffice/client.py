@@ -3,7 +3,9 @@ from types import ModuleType
 
 from suds.client import Client as SudsClient
 from suds.sax.text import Text
+from suds import WebFault
 from .utils import node_to_dict
+from . import exceptions
 from . import resources
 # from . import error, resources, __version__  # noqa
 
@@ -130,7 +132,7 @@ class Client:
             'TransactionService.asmx?WSDL',
     }
 
-    def __init__(self, username, password, applicationid, identityid=None, token_id=None, faults=False, **options):  # noqa
+    def __init__(self, username, password, applicationid, identityid=None, token_id=None, faults=True, **options):  # noqa
         """
         Initialize a Client object with session, optional auth handler, and options
         """
@@ -147,11 +149,8 @@ class Client:
 
         else:
             # authenticate
-            status, session_id = self._authenticate(
+            session_id = self._authenticate(
                 username, password, applicationid, identityid)
-            if status != 200 or session_id is None:
-                logger.warning('Cannot authenticate with 24so, Status is not OK: %s - %s' % (status, session_id))
-            assert status == 200, 'Cannot authenticate with 24so, Status is not OK: %s' % status
             logging.debug('Authenticated OK as %s' % username)
             # store session id
 
@@ -209,12 +208,17 @@ class Client:
     def _get(self, method, params, **options):
         """Parse GET request options and dispatches a request."""
         return_values = options.pop('return_values', None)
-        if return_values:
-            status, result = method(params, return_values)
-        else:
-            status, result = method(params)
 
-        assert status == 200, 'Status is %s' % status
+        try:
+            if return_values:
+                result = method(params, return_values)
+            else:
+                result = method(params)
+        except WebFault as ex:
+            raise exceptions.WebFault(ex.fault.faultstring, ex.fault.detail, ex.fault.faultcode)
+
+        # message = api.last_received()
+        # text = message.children[0].children[0].children[0].children[1].text
 
         if type(result) is Text:
             return str(result)
@@ -239,21 +243,18 @@ class Client:
 
         # execute -> backend
         return_values = options.pop('return_values', None)
-        if return_values:
-            status, results = method(params, return_values)
-        else:
-            status, results = method(params)
-
-        # assert status == 200, 'Status is %s' % status
-        # if type(results) is Text:
-        #     logger.info('Found 0 results')
-        #     return []
-
-        output['status_code'] = status
+        try:
+            if return_values:
+                results = method(params, return_values)
+            else:
+                results = method(params)
+        except WebFault as ex:
+            raise exceptions.WebFault(ex.fault.faultstring, ex.fault.detail, ex.fault.faultcode)
 
         # check response
         # assert status == 200, 'Status is %s' % status
         if type(results) is Text:
+            output['results'] = str(results)
             return output
 
         # raise Exception if result is anything but a List

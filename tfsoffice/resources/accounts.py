@@ -170,11 +170,13 @@ class Accounts:
         # add bundle to bundlelist
         bundlelist.Bundles.Bundle.append(bundle)
 
-        status, output = method(bundlelist)
-        if status == 200:
-            return status, output
+        return self._client._get(method, bundlelist)
 
-        message = api.last_received()
-        text = message.children[0].children[0].children[0].children[1].text
-        return status, text
+        # status, output = method(bundlelist)
+        # if status == 200:
+        #     return status, output
+
+        # message = api.last_received()
+        # text = message.children[0].children[0].children[0].children[1].text
+        # return status, text
         # return self._client._get(method, bundlelist)
