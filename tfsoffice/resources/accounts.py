@@ -51,6 +51,7 @@ class Accounts:
         #             tax_no=1,
         #             bankaccount='22222222222',
         #             comment="#13132",  # optional
+        #             stamp_no=1123569
         #         ),
         #         dict(
         #             customer_id=1,
@@ -159,7 +160,10 @@ class Accounts:
 
             if row.get('comment', None):
                 entry.Comment = row['comment']
-            # entry.StampNo = 0
+
+            # attachments
+            if row.get('stamp_no', None):
+                entry.StampNo = row['stamp_no']
 
             # add entry to voucher
             voucher.Entries.Entry.append(entry)
@@ -169,6 +173,8 @@ class Accounts:
 
         # add bundle to bundlelist
         bundlelist.Bundles.Bundle.append(bundle)
+
+        return method(bundlelist)
 
         return self._client._get(method, bundlelist)
 

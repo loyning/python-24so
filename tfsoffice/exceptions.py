@@ -4,6 +4,9 @@ class WebFault(Exception):
         self.faultcode = faultcode
         self.message = message
 
+    def __str__(self):
+        return self.message
+
 
 class TooManyResultsException(Exception):
     pass
