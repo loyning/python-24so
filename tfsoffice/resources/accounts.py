@@ -20,14 +20,15 @@ class Accounts:
 
         return self._client._get_collection(method, None)
 
-    # def get_entry_id(self):
-    #     api = self._client._get_client(self._service)
+    def get_entry_id(self):
+        api = self._client._get_client(self._service)
 
-    #     method = api.service.GetEntryId
+        method = api.service.GetEntryId
 
-    #     param = api.factory.create('EntryId')
+        param = api.factory.create('EntryId')
+        param.Sort = 1
 
-    #     return self._client._get(method, param)
+        return self._client._get(method, param)
 
     def save_bundle_list(self, data):
         # data = dict(

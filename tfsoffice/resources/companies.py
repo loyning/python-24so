@@ -1,3 +1,6 @@
+import datetime
+
+
 class Companies:
     def __init__(self, client=None):
         self._client = client
@@ -53,7 +56,10 @@ class Companies:
         api = self._client._get_client(self._service)
         return_values = self._get_return_values(api)
 
+        beginning_of_time = datetime.datetime(1970, 1, 1)
+
         params = api.factory.create('CompanySearchParameters')
+        params.ChangedAfter = beginning_of_time
 
         method = api.service.GetCompanies
 
