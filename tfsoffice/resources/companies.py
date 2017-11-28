@@ -48,3 +48,13 @@ class Companies:
         method = api.service.GetCompanies
 
         return self._client._get_collection(method, params, return_values=return_values)
+
+    def list(self):
+        api = self._client._get_client(self._service)
+        return_values = self._get_return_values(api)
+
+        params = api.factory.create('CompanySearchParameters')
+
+        method = api.service.GetCompanies
+
+        return self._client._get_collection(method, params, return_values=return_values)
