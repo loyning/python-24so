@@ -46,6 +46,7 @@ class Accounts:
         #     bundle_name='API Test #2',
         #     entries=[
         #         dict(
+        #             link_id='internal id',
         #             customer_id=1,
         #             account_no=4350,
         #             date="2017-11-1",
@@ -173,6 +174,9 @@ class Accounts:
             # attachments
             if row.get('stamp_no', None):
                 entry.StampNo = row['stamp_no']
+
+            if row.get('link_id', None):
+                entry.LinkId = row['link_id']
 
             # add entry to voucher
             voucher.Entries.Entry.append(entry)
