@@ -64,3 +64,27 @@ class Companies:
         method = api.service.GetCompanies
 
         return self._client._get_collection(method, params, return_values=return_values)
+
+    def save_companies(self, companies):
+        api = self._client._get_client(self._service)
+        return_values = self._get_return_values(api)
+
+        company_types = api.factory.create('CompanyType')
+
+        def build_company(attrs):
+            company = api.factory.create('Company')
+
+            for key, value in attrs.iteritems():
+                if key == 'Type':
+                    value = getattr(company_types, value)
+
+                setattr(company, key, value)
+
+            return company
+
+        params = api.factory.create('ArrayOfCompany')
+        params.Company = map(build_company, companies)
+
+        method = api.service.SaveCompanies
+
+        return self._client._get_collection(method, params, return_values=return_values)
