@@ -33,14 +33,14 @@ class Attachment:
         if not hasattr(loc, location):
             raise AttributeError('Location not supported')
 
-        # file_obj = api.service.Create(filetype)
-        # file_obj.StampNo = api.service.GetStampNo()
-
-        file_obj = api.factory.create('ImageFile')
-        file_obj.Type.value = filetype
+        file_obj = api.service.Create(filetype)
 
         frame = api.factory.create('ImageFrameInfo')
+        frame.Id = 1  # PAGE_NO = always 1
+        frame.Status = 0
         frame.StampNo = api.service.GetStampNo()
+
+        file_obj.FrameInfo = api.factory.create('ArrayOfImageFrameInfo')
 
         file_obj.FrameInfo.ImageFrameInfo.append(frame)
 
@@ -52,6 +52,6 @@ class Attachment:
         return dict(
             Id=file_obj.Id,
             Type=file_obj.Type,
-            StampNo=file_obj.StampNo
+            StampNo=frame.StampNo
         )
         # return self._client._get_collection(method, None)

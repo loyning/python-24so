@@ -46,7 +46,7 @@ class Accounts:
         #     bundle_name='API Test #2',
         #     entries=[
         #         dict(
-        #             link_id='internal id',
+        #             # link_id='internal id',  # must be GUID - xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
         #             customer_id=1,
         #             account_no=4350,
         #             date="2017-11-1",
@@ -59,22 +59,9 @@ class Accounts:
         #             project_id=None,  # optional
         #             invoice_refno=None,  # optional
         #             tax_no=1,
-        #             bankaccount='22222222222',
+        #             bankaccount='28002222222',
         #             comment="#13132",  # optional
-        #             stamp_no=1123569
-        #         ),
-        #         dict(
-        #             customer_id=1,
-        #             account_no=4360,
-        #             date="2017-11-2",
-        #             due_date="2017-11-16",
-        #             amount=777.00,
-        #             currency_id="NOK",
-        #             currency_rate=None,
-        #             currency_unit=None,
-        #             tax_no=1,
-        #             bankaccount='22222222222',
-        #             comment="#13132",
+        #             stamp_no=1
         #         ),
         #     ]
         # )
