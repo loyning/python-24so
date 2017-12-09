@@ -24,7 +24,7 @@ class Authenticate:
 
         method = api.service.HasSession
 
-        return self._client._get_collection(method, None)
+        return self._client._get(method, None)
 
     def get_identities(self):
         api = self._client._get_client(self._service)
