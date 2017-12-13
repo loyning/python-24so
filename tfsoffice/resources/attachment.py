@@ -6,25 +6,17 @@ class Attachment:
         self._client = client
         self._service = 'Attachment'
 
-    def upload_image(self, path, location='Journal'):
+    def upload_file(self, path, location='Retrieval'):
+        api = self._client._get_client(self._service)
+
         if path.lower().endswith('.jpeg') or path.lower().endswith('.jpg'):
             filetype = 'Jpeg'
         elif path.lower().endswith('.png'):
             filetype = 'Png'
         elif path.lower().endswith('.tif') or path.lower().endswith('.tiff'):
             filetype = 'Tiff'
-        elif path.lower().endswith('.pdf'):
-            filetype = 'Pdf'
         else:
             raise AttributeError('Filetype not supported')
-
-        with open(path, 'rb') as f:
-            content = base64.b64encode(f.read())
-
-        return self.upload_content(content, filetype, location)
-
-    def upload_content(self, content, filetype, location='Journal'):
-        api = self._client._get_client(self._service)
 
         types = api.factory.create('ImageType')
         if not hasattr(types, filetype):
@@ -33,20 +25,40 @@ class Attachment:
         if not hasattr(loc, location):
             raise AttributeError('Location not supported')
 
-        file_obj = api.service.Create(filetype)
+        # load file from disk
+        with open(path, 'rb') as f:
+            content = f.read()
 
+        file_obj = api.service.Create(filetype)
+        file_obj.FrameInfo = api.factory.create('ArrayOfImageFrameInfo')
+
+        # create one frame per image
         frame = api.factory.create('ImageFrameInfo')
         frame.Id = 1  # PAGE_NO = always 1
         frame.Status = 0
         frame.StampNo = api.service.GetStampNo()
 
-        file_obj.FrameInfo = api.factory.create('ArrayOfImageFrameInfo')
-
+        # add the frame/image to the file object via the array of image frame info
         file_obj.FrameInfo.ImageFrameInfo.append(frame)
 
-        # upload the file
-        api.service.AppendChunk(file_obj, content, 0)
+        # max chunk size
+        # max_length = api.service.GetMaxRequestLength()
+        max_length = 2500
 
+        # upload the files
+        offset = 0
+        while offset <= len(content):
+            # extract next part of the content
+            part = content[offset:offset + max_length]
+            # part = part.encode('base64')
+            part = base64.b64encode(part)
+            # print('uploading offset = {}, bytes = {}'.format(offset, len(part)))
+
+            api.service.AppendChunk(file_obj, part, offset)
+
+            offset += max_length
+
+        # print('All chunks uploaded OK')
         api.service.Save(file_obj, location)
 
         return dict(

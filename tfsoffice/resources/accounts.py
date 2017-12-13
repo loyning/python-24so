@@ -26,8 +26,8 @@ class Accounts:
         method = api.service.GetEntryId
 
         param = api.factory.create('EntryId')
-        param.Date = datetime.datetime(year, 1, 1)
-        param.Sort = 1
+        param.Date = datetime.date(year, 1, 1)
+        param.SortNo = 1
 
         return self._client._get(method, param)
 
@@ -38,30 +38,33 @@ class Accounts:
 
         return self._client._get_collection(method, None)
 
-    def save_bundle_list(self, data):
+    def save_bundle_list(self, data, imagepath=None):
         # data = dict(
         #     allow_difference=True,
         #     direct_ledger=False,
         #     save_option=1,
-        #     bundle_name='API Test #2',
+        #     bundle_name='VIC {}'.format(datetime.datetime.today().isoformat()),
         #     entries=[
         #         dict(
         #             # link_id='internal id',  # must be GUID - xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
         #             customer_id=1,
         #             account_no=4350,
-        #             date="2017-11-1",
+
+        #             # invoice fields
+        #             date="2017-11-01",
         #             due_date="2017-11-15",
-        #             amount=666.00,
-        #             currency_id="NOK",  # defaults to NOK
-        #             currency_rate=None,  # optional
-        #             currency_unit=None,  # optional
         #             department_id=None,  # optional
         #             project_id=None,  # optional
         #             invoice_refno=None,  # optional
-        #             tax_no=1,
         #             bankaccount='28002222222',
+        #             currency_id="NOK",  # defaults to NOK
+        #             currency_rate=None,  # optional
+        #             currency_unit=None,  # optional
+
+        #             amount=666.00,
+        #             tax_no=1,
+        #             stamp_no=12,
         #             comment="#13132",  # optional
-        #             stamp_no=1
         #         ),
         #     ]
         # )
