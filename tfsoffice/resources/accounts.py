@@ -38,37 +38,67 @@ class Accounts:
 
         return self._client._get_collection(method, None)
 
-    def save_bundle_list(self, data, imagepath=None):
-        # data = dict(
-        #     allow_difference=True,
-        #     direct_ledger=False,
-        #     save_option=1,
-        #     bundle_name='VIC {}'.format(datetime.datetime.today().isoformat()),
-        #     entries=[
-        #         dict(
-        #             # link_id='internal id',  # must be GUID - xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-        #             customer_id=1,
-        #             account_no=4350,
+    def _get_test_bundle(self, imagepath=None):
+        data = dict(
+            allow_difference=True,
+            direct_ledger=False,
+            save_option=1,
+            bundle_name='VIC {}'.format(datetime.datetime.today().isoformat()),
+            imagepath=None,
+            entries=[
+                dict(
+                    # link_id='internal id',  # must be GUID - xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+                    customer_id=1,
+                    account_no=4350,
 
-        #             # invoice fields
-        #             date="2017-11-01",
-        #             due_date="2017-11-15",
-        #             department_id=None,  # optional
-        #             project_id=None,  # optional
-        #             invoice_refno=None,  # optional
-        #             bankaccount='28002222222',
-        #             currency_id="NOK",  # defaults to NOK
-        #             currency_rate=None,  # optional
-        #             currency_unit=None,  # optional
+                    # invoice fields
+                    date="2017-10-01",
+                    due_date="2017-10-15",
+                    department_id=None,  # optional
+                    project_id=None,  # optional
+                    invoice_refno=None,  # optional
+                    bankaccount='28002222222',
+                    currency_id="NOK",  # defaults to NOK
+                    currency_rate=None,  # optional
+                    currency_unit=None,  # optional
 
-        #             amount=666.00,
-        #             tax_no=1,
-        #             stamp_no=12,
-        #             comment="#13132",  # optional
-        #         ),
-        #     ]
-        # )
+                    amount=666.00,
+                    tax_no=1,
+                    # imagepath='/path/to/and/image',
+                    comment="#13132",  # optional
+                ),
+            ]
+        )
 
+        if imagepath:
+            result = self._client.attachment.upload_file(imagepath)
+            stamp_no = result['StampNo']
+
+            data['entries'][0]['stamp_no'] = stamp_no
+
+        return data
+
+    def save_entries_as_bundle(self, entries, bundle_prefix='VIC'):
+        data = dict(
+            allow_difference=True,
+            direct_ledger=False,
+            save_option=1,
+            bundle_name='{} {}'.format(bundle_prefix, datetime.datetime.today().isoformat()),
+            entries=entries,
+        )
+        return self.save_bundle_list(data)
+
+    def save_entries_to_ledger(self, entries, bundle_prefix='VIC'):
+        data = dict(
+            allow_difference=True,
+            direct_ledger=True,
+            save_option=0,
+            bundle_name='{} {}'.format(bundle_prefix, datetime.datetime.today().isoformat()),
+            entries=entries,
+        )
+        return self.save_bundle_list(data)
+
+    def save_bundle_list(self, data):
         api = self._client._get_client(self._service)
         method = api.service.SaveBundleList
 
@@ -91,12 +121,16 @@ class Accounts:
         # Setting 0 saves the bundle directly to the ledger.
         bundlelist.SaveOption = data.get('save_option', 1)
 
+        # Attachments
+        attachments = {}
+
         #
         # BUNDLE
         #
         bundles = {}
         for row in data.get('entries', []):
-            year = row['date'][:4]
+            year = int(row['date'][:4])
+            year = str(year + 1)
             if year in bundles:
                 bundle = bundles[year]
             else:
@@ -112,7 +146,7 @@ class Accounts:
                 # The name of the bundle.
                 bundle.Name = data.get('bundle_name', None)
 
-                # If set to false it automatically calculates VAT. If set to true it does not calculate VAT.
+                # BundleDirectAccounting: If set to false it automatically calculates VAT. If set to true it does not calculate VAT.
                 # This is only applicable when saving journal data (see SaveOption).
                 if bundlelist.SaveOption:
                     bundle.BundleDirectAccounting = False
@@ -162,8 +196,18 @@ class Accounts:
                 entry.Comment = row['comment']
 
             # attachments
-            if row.get('stamp_no', None):
-                entry.StampNo = row['stamp_no']
+            # if row.get('stamp_no', None):
+            #     entry.StampNo = row['stamp_no']
+            imagepath = row.get('imagepath', None)
+            if imagepath:
+                print('Found attachment: ', imagepath)
+                if imagepath not in attachments:
+                    print('Uploading attachment...')
+                    result = self._client.attachment.upload_file(imagepath)
+                    attachments[imagepath] = result['StampNo']
+                else:
+                    print('Attachment already uploaded: ', imagepath)
+                entry.StampNo = attachments[imagepath]
 
             if row.get('link_id', None):
                 entry.LinkId = row['link_id']
@@ -177,7 +221,7 @@ class Accounts:
         # add bundle to bundlelist
         bundlelist.Bundles.Bundle.append(bundle)
 
-        return method(bundlelist)
+        # return method(bundlelist)
 
         return self._client._get(method, bundlelist)
 
