@@ -44,7 +44,6 @@ class Accounts:
             direct_ledger=False,
             save_option=1,
             bundle_name='VIC {}'.format(datetime.datetime.today().isoformat()),
-            imagepath=None,
             entries=[
                 dict(
                     # link_id='internal id',  # must be GUID - xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
