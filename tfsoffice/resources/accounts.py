@@ -181,13 +181,13 @@ class Accounts:
             if row.get('currency_unit', None):
                 entry.CurrencyUnit = row['currency_unit']
             if row.get('department_id', None):
-                entry.Department = row['department_id']
+                entry.DepartmentId = row['department_id']
             if row.get('project_id', None):
-                entry.Department = row['project_id']
+                entry.ProjectId = row['project_id']
             if row.get('invoice_refno', None):
                 entry.InvoiceReferenceNo = row['invoice_refno']
             if row.get('invoice_kid', None):
-                entry.InvoiceKid = row['invoice_kid']
+                entry.InvoiceOcr = row['invoice_kid']
             entry.TaxNo = row.get('tax_no', 'NOK')
             entry.BankAccountNo = row.get('bankaccount', None)
 
