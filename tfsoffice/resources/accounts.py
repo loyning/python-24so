@@ -170,29 +170,22 @@ class Accounts:
             entry = api.factory.create('Entry')
             entry.CustomerId = row['customer_id']
             entry.AccountId = row['account_no']
-            entry.Date = datetime.datetime.strptime(row['date'], '%Y-%m-%d')
-            entry.DueDate = datetime.datetime.strptime(row['due_date'], '%Y-%m-%d')
-            if row.get('period', None):
-                entry.Period = row['period']
-            entry.Amount = row['amount']
+            if row.get('date', None):
+                entry.Date = datetime.datetime.strptime(row['date'], '%Y-%m-%d')
+            if row.get('due_date', None):
+                entry.DueDate = datetime.datetime.strptime(row['due_date'], '%Y-%m-%d')
+            entry.Period = row.get('period', None)
+            entry.Amount = row.get('amount', None)
             entry.CurrencyId = row.get('currency_id', 'NOK')
-            if row.get('currency_rate', None):
-                entry.CurrencyRate = row['currency_rate']
-            if row.get('currency_unit', None):
-                entry.CurrencyUnit = row['currency_unit']
-            if row.get('department_id', None):
-                entry.DepartmentId = row['department_id']
-            if row.get('project_id', None):
-                entry.ProjectId = row['project_id']
-            if row.get('invoice_refno', None):
-                entry.InvoiceReferenceNo = row['invoice_refno']
-            if row.get('invoice_kid', None):
-                entry.InvoiceOcr = row['invoice_kid']
+            entry.CurrencyRate = row.get('currency_rate', None)
+            entry.CurrencyUnit = row.get('currency_unit', None)
+            entry.Department = row.get('department_id', None)
+            entry.Project = row.get('project_id', None)
+            entry.InvoiceReferenceNo = row.get('invoice_refno', None)
+            entry.InvoiceKID = row.get('invoice_kid', None)
             entry.TaxNo = row.get('tax_no', 'NOK')
             entry.BankAccountNo = row.get('bankaccount', None)
-
-            if row.get('comment', None):
-                entry.Comment = row['comment']
+            entry.Comment = row.get('comment', None)
 
             # attachments
             # if row.get('stamp_no', None):
