@@ -91,7 +91,7 @@ class Accounts:
         data = dict(
             allow_difference=True,
             direct_ledger=True,
-            save_option=0,
+            save_option=1,
             bundle_name='{} {}'.format(bundle_prefix, datetime.datetime.today().isoformat()),
             entries=entries,
         )
