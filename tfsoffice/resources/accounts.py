@@ -51,8 +51,8 @@ class Accounts:
                     account_no=4350,
 
                     # invoice fields
-                    date="2017-10-01",
-                    due_date="2017-10-15",
+                    date="2018-01-20",
+                    due_date="2018-01-30",
                     department_id=None,  # optional
                     project_id=None,  # optional
                     invoice_refno=None,  # optional
@@ -61,8 +61,29 @@ class Accounts:
                     currency_rate=None,  # optional
                     currency_unit=None,  # optional
 
-                    amount=666.00,
+                    amount=1250,
                     tax_no=1,
+                    # imagepath='/path/to/and/image',
+                    comment="#13132",  # optional
+                ),
+                dict(
+                    # link_id='internal id',  # must be GUID - xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+                    customer_id=1,
+                    account_no=2400,
+
+                    # invoice fields
+                    date="2018-01-20",
+                    due_date="2018-01-30",
+                    department_id=None,  # optional
+                    project_id=None,  # optional
+                    invoice_refno=None,  # optional
+                    bankaccount='28002222222',
+                    currency_id="NOK",  # defaults to NOK
+                    currency_rate=None,  # optional
+                    currency_unit=None,  # optional
+
+                    amount=-1250,
+                    tax_no=0,
                     # imagepath='/path/to/and/image',
                     comment="#13132",  # optional
                 ),
@@ -175,7 +196,7 @@ class Accounts:
             if row.get('due_date', None):
                 entry.DueDate = datetime.datetime.strptime(row['due_date'], '%Y-%m-%d')
             entry.Period = row.get('period', None)
-            entry.Amount = row.get('amount', None)
+            entry.Amount = row.get('amount', None)  # this is the amount INCL VAT
             entry.CurrencyId = row.get('currency_id', 'NOK')
             entry.CurrencyRate = row.get('currency_rate', None)
             entry.CurrencyUnit = row.get('currency_unit', None)
@@ -189,7 +210,7 @@ class Accounts:
 
             # attachments
             # if row.get('stamp_no', None):
-            #     entry.StampNo = row['stamp_no']
+            entry.StampNo = row.get('stamp_no', None)
             imagepath = row.get('imagepath', None)
             if imagepath:
                 print('Found attachment: ', imagepath)
