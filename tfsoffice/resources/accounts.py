@@ -144,6 +144,18 @@ class Accounts:
         # Attachments
         attachments = {}
 
+        # Get the TransactionNo
+        # We assume that all the entries belong to the same transaction
+        e = api.factory.create('EntryId')
+        e.Date = datetime.datetime.today()
+        e.SortNo = 3  # incoming invoice
+        e.EntryNo = 1  # temp value
+        e = api.service.GetEntryId(e)
+        transaction_id = e.EntryNo
+
+        # cached stamp
+        cache_stamp = None
+
         #
         # BUNDLE
         #
@@ -179,7 +191,7 @@ class Accounts:
             voucher = api.factory.create('Voucher')
 
             # You can get the next available number by sending a request to GetEntryId.
-            voucher.TransactionNo = 1
+            voucher.TransactionNo = transaction_id
 
             # Can be defined for either Bundle or Voucher. This is an entry type. The No property from
             # GetTransactionTypes is used.
@@ -213,14 +225,22 @@ class Accounts:
             entry.StampNo = row.get('stamp_no', None)
             imagepath = row.get('imagepath', None)
             if imagepath:
-                print('Found attachment: ', imagepath)
+                # print('Found attachment: ', imagepath)
                 if imagepath not in attachments:
                     print('Uploading attachment...')
                     result = self._client.attachment.upload_file(imagepath)
                     attachments[imagepath] = result['StampNo']
-                else:
-                    print('Attachment already uploaded: ', imagepath)
+                # else:
+                #     print('Attachment already uploaded: ', imagepath)
                 entry.StampNo = attachments[imagepath]
+
+            else:
+                # create a stamp number
+                if not cache_stamp:
+                    att = self._client._get_client('Attachment')
+                    cache_stamp = att.service.GetStampNo()
+                entry.StampNo = cache_stamp
+                # print('Created stamp number: ', entry.StampNo)
 
             if row.get('link_id', None):
                 entry.LinkId = row['link_id']
