@@ -201,8 +201,8 @@ class Accounts:
             # ENTRY
             #
             entry = api.factory.create('Entry')
-            entry.CustomerId = row['customer_id']
-            entry.AccountId = row['account_no']
+            entry.CustomerId = row.get('customer_id', None)
+            entry.AccountId = row.get('account_no', None)
             if row.get('date', None):
                 entry.Date = datetime.datetime.strptime(row['date'], '%Y-%m-%d')
             if row.get('due_date', None):
@@ -216,7 +216,7 @@ class Accounts:
             entry.ProjectId = row.get('project_id', None)
             entry.InvoiceReferenceNo = row.get('invoice_refno', None)
             entry.InvoiceOcr = row.get('invoice_kid', None)
-            entry.TaxNo = row.get('tax_no', 'NOK')
+            entry.TaxNo = row.get('tax_no', 0)
             entry.BankAccountNo = row.get('bankaccount', None)
             entry.Comment = row.get('comment', None)
 
