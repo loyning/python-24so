@@ -15,6 +15,15 @@ class Client:
         return self._client._get_collection(method, params)
         return self._client._get_collection(method, params, return_values=return_values)
 
+    def get_currency_list(self):
+        api = self._client._get_client(self._service)
+
+        params = None
+
+        method = api.service.GetCurrencyList
+
+        return self._client._get_collection(method, params)
+
     # def register_payment(self, payment, params={}, **options):
     #     api = self._client._get_client(self._service)
 
