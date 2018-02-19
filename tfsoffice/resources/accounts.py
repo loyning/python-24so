@@ -43,7 +43,7 @@ class Accounts:
             allow_difference=True,
             direct_ledger=False,
             save_option=1,
-            bundle_name='VIC {}'.format(datetime.datetime.today().isoformat()),
+            bundle_name='AI {}'.format(datetime.datetime.today().isoformat()),
             entries=[
                 dict(
                     # link_id='internal id',  # must be GUID - xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
@@ -61,7 +61,28 @@ class Accounts:
                     currency_rate=None,  # optional
                     currency_unit=None,  # optional
 
-                    amount=1250,
+                    amount=1000,
+                    tax_no=1,
+                    # imagepath='/path/to/and/image',
+                    comment="#13132",  # optional
+                ),
+                dict(
+                    # link_id='internal id',  # must be GUID - xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+                    customer_id=1,
+                    account_no=4350,
+
+                    # invoice fields
+                    date="2018-01-20",
+                    due_date="2018-01-30",
+                    department_id=None,  # optional
+                    project_id=None,  # optional
+                    invoice_refno=None,  # optional
+                    bankaccount='28002222222',
+                    currency_id="NOK",  # defaults to NOK
+                    currency_rate=None,  # optional
+                    currency_unit=None,  # optional
+
+                    amount=250,
                     tax_no=1,
                     # imagepath='/path/to/and/image',
                     comment="#13132",  # optional
@@ -98,7 +119,7 @@ class Accounts:
 
         return data
 
-    def save_entries_as_bundle(self, entries, bundle_prefix='VIC'):
+    def save_entries_as_bundle(self, entries, bundle_prefix='AI'):
         data = dict(
             allow_difference=True,
             direct_ledger=False,
@@ -108,7 +129,7 @@ class Accounts:
         )
         return self.save_bundle_list(data)
 
-    def save_entries_to_ledger(self, entries, bundle_prefix='VIC'):
+    def save_entries_to_ledger(self, entries, bundle_prefix='AI'):
         data = dict(
             allow_difference=True,
             direct_ledger=True,
@@ -121,6 +142,11 @@ class Accounts:
     def save_bundle_list(self, data):
         api = self._client._get_client(self._service)
         method = api.service.SaveBundleList
+
+        if len(data.get('entries', [])) == 0:
+            raise Exception('No entried found.')
+
+        entries = data.get('entries', [])
 
         #
         # BUNDLE LIST
@@ -159,44 +185,37 @@ class Accounts:
         #
         # BUNDLE
         #
-        bundles = {}
-        for row in data.get('entries', []):
-            year = int(row['date'][:4])
-            year = str(year + 1)
-            if year in bundles:
-                bundle = bundles[year]
-            else:
-                bundle = api.factory.create('Bundle')
+        bundle = api.factory.create('Bundle')
+        year = int(entries[0]['date'][:4])
 
-                # The YearId is set to the current year of the bundle. e.g. 2017.
-                bundle.YearId = int(year)
+        # The YearId is set to the current year of the bundle. e.g. 2017.
+        bundle.YearId = int(year)
+        # Can be defined for either Bundle or Voucher. This is an entry type.
+        # The No property from GetTransactionTypes is used.
+        bundle.Sort = 1
 
-                # Can be defined for either Bundle or Voucher. This is an entry type.
-                # The No property from GetTransactionTypes is used.
-                bundle.Sort = 1
+        # The name of the bundle.
+        bundle.Name = data.get('bundle_name', None)
 
-                # The name of the bundle.
-                bundle.Name = data.get('bundle_name', None)
+        # BundleDirectAccounting: If set to false it automatically calculates VAT. If set to true it does not calculate VAT.
+        # This is only applicable when saving journal data (see SaveOption).
+        if bundlelist.SaveOption:
+            bundle.BundleDirectAccounting = False
 
-                # BundleDirectAccounting: If set to false it automatically calculates VAT. If set to true it does not calculate VAT.
-                # This is only applicable when saving journal data (see SaveOption).
-                if bundlelist.SaveOption:
-                    bundle.BundleDirectAccounting = False
-                bundles[year] = bundle
+        #
+        # VOUCHER
+        #
+        # This the transaction number of the voucher.
+        voucher = api.factory.create('Voucher')
 
-            #
-            # VOUCHER
-            #
-            # This the transaction number of the voucher.
-            voucher = api.factory.create('Voucher')
+        # You can get the next available number by sending a request to GetEntryId.
+        voucher.TransactionNo = transaction_id
 
-            # You can get the next available number by sending a request to GetEntryId.
-            voucher.TransactionNo = transaction_id
+        # Can be defined for either Bundle or Voucher. This is an entry type. The No property from
+        # GetTransactionTypes is used.
+        voucher.Sort = 1
 
-            # Can be defined for either Bundle or Voucher. This is an entry type. The No property from
-            # GetTransactionTypes is used.
-            voucher.Sort = 1
-
+        for row in entries:
             #
             # ENTRY
             #
@@ -221,7 +240,6 @@ class Accounts:
             entry.Comment = row.get('comment', None)
 
             # attachments
-            # if row.get('stamp_no', None):
             entry.StampNo = row.get('stamp_no', None)
             imagepath = row.get('imagepath', None)
             if imagepath:
@@ -230,8 +248,6 @@ class Accounts:
                     print('Uploading attachment...')
                     result = self._client.attachment.upload_file(imagepath)
                     attachments[imagepath] = result['StampNo']
-                # else:
-                #     print('Attachment already uploaded: ', imagepath)
                 entry.StampNo = attachments[imagepath]
 
             else:
@@ -248,21 +264,10 @@ class Accounts:
             # add entry to voucher
             voucher.Entries.Entry.append(entry)
 
-            # add voucher to bundle
-            bundle.Vouchers.Voucher.append(voucher)
+        # add voucher to bundle
+        bundle.Vouchers.Voucher.append(voucher)
 
         # add bundle to bundlelist
         bundlelist.Bundles.Bundle.append(bundle)
 
-        # return method(bundlelist)
-
         return self._client._get(method, bundlelist)
-
-        # status, output = method(bundlelist)
-        # if status == 200:
-        #     return status, output
-
-        # message = api.last_received()
-        # text = message.children[0].children[0].children[0].children[1].text
-        # return status, text
-        # return self._client._get(method, bundlelist)
