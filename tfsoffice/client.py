@@ -151,9 +151,12 @@ class Client:
             # authenticate
             session_id = self._authenticate(
                 username, password, applicationid, identityid)
-            logging.debug('Authenticated OK as %s' % username)
-            # store session id
 
+            assert session_id, 'Authentication failure'
+
+            logging.debug('Authenticated OK as %s' % username)
+
+        # store session id
         self._headers = {'Cookie': 'ASP.NET_SessionId=%s' % session_id}
 
         # merge the provided options (if any) with the global DEFAULTS
