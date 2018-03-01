@@ -24,6 +24,15 @@ class Client:
 
         return self._client._get_collection(method, params)
 
+    def get_users(self):
+        api = self._client._get_client(self._service)
+
+        params = None
+
+        method = api.service.GetUsers
+
+        return self._client._get_collection(method, params)
+
     # def register_payment(self, payment, params={}, **options):
     #     api = self._client._get_client(self._service)
 
