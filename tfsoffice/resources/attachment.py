@@ -1,4 +1,5 @@
 import base64
+from io import BytesIO
 
 
 class Attachment:
@@ -67,3 +68,25 @@ class Attachment:
             StampNo=frame.StampNo
         )
         # return self._client._get_collection(method, None)
+
+    def download_stamp_no(self, stamp_no):
+        api = self._client._get_client(self._service)
+
+        maxlength = api.service.GetMaxRequestLength()
+
+        fsp = api.factory.create('FileSearchParameters')
+        fsp.StampNo.int.append(stamp_no)
+
+        fileinfo = api.service.GetFileInfo(fsp)
+
+        filesize = api.service.GetSize(fileinfo[0])
+
+        content = ''
+        for offset in range(0, filesize, maxlength):
+            data = api.service.DownloadChunk(fileinfo[0], offset, maxlength)
+            content += base64.b64decode(data)
+        data = api.service.DownloadChunk(fileinfo[0], offset, filesize - offset)
+        content += base64.b64decode(data)
+
+        buf = BytesIO(content)
+        return buf
