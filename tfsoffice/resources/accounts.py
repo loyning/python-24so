@@ -38,7 +38,7 @@ class Accounts:
 
         return self._client._get_collection(method, None)
 
-    def _get_test_bundle(self, imagepath=None):
+    def _get_test_bundle(self, imagepath=None, location='Journal'):
         data = dict(
             allow_difference=True,
             direct_ledger=False,
@@ -112,7 +112,7 @@ class Accounts:
         )
 
         if imagepath:
-            result = self._client.attachment.upload_file(imagepath)
+            result = self._client.attachment.upload_file(imagepath, location)
             stamp_no = result['StampNo']
 
             data['entries'][0]['stamp_no'] = stamp_no
@@ -126,6 +126,7 @@ class Accounts:
             save_option=1,
             bundle_name='{} {}'.format(bundle_prefix, datetime.datetime.today().isoformat()),
             entries=entries,
+            location='Journal',
         )
         return self.save_bundle_list(data)
 
@@ -133,15 +134,19 @@ class Accounts:
         data = dict(
             allow_difference=True,
             direct_ledger=True,
-            save_option=1,
+            save_option=0,
             bundle_name='{} {}'.format(bundle_prefix, datetime.datetime.today().isoformat()),
             entries=entries,
+            location='Journal',
         )
         return self.save_bundle_list(data)
 
     def save_bundle_list(self, data):
         api = self._client._get_client(self._service)
         method = api.service.SaveBundleList
+
+        # attachment location
+        location = data.get('location', 'Journal')
 
         if len(data.get('entries', [])) == 0:
             raise Exception('No entried found.')
@@ -240,23 +245,26 @@ class Accounts:
             entry.Comment = row.get('comment', None)
 
             # attachments
-            entry.StampNo = row.get('stamp_no', None)
+            entry.StampNo = row.get('stamp_no', cache_stamp)
             imagepath = row.get('imagepath', None)
-            if imagepath:
+            if row.get('stamp_no', cache_stamp):
+                entry.StampNo = row.get('stamp_no', cache_stamp)
+
+            elif imagepath:
                 # print('Found attachment: ', imagepath)
                 if imagepath not in attachments:
                     print('Uploading attachment...')
-                    result = self._client.attachment.upload_file(imagepath)
+                    result = self._client.attachment.upload_file(imagepath, location)
                     attachments[imagepath] = result['StampNo']
                 entry.StampNo = attachments[imagepath]
 
             else:
                 # create a stamp number
-                if not cache_stamp:
-                    att = self._client._get_client('Attachment')
-                    cache_stamp = att.service.GetStampNo()
-                entry.StampNo = cache_stamp
+                # print('create stamp number')
+                att = self._client._get_client('Attachment')
+                cache_stamp = att.service.GetStampNo()
                 # print('Created stamp number: ', entry.StampNo)
+            cache_stamp = entry.StampNo
 
             if row.get('link_id', None):
                 entry.LinkId = row['link_id']

@@ -7,7 +7,7 @@ class Attachment:
         self._client = client
         self._service = 'Attachment'
 
-    def upload_file(self, path, location='Retrieval'):
+    def upload_file(self, path, location='Journal'):
         api = self._client._get_client(self._service)
 
         if path.lower().endswith('.jpeg') or path.lower().endswith('.jpg'):
@@ -65,7 +65,8 @@ class Attachment:
         return dict(
             Id=file_obj.Id,
             Type=file_obj.Type,
-            StampNo=frame.StampNo
+            StampNo=frame.StampNo,
+            Location=location,
         )
         # return self._client._get_collection(method, None)
 
