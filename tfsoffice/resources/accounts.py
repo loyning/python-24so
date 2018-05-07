@@ -127,6 +127,7 @@ class Accounts:
             bundle_name='{} {}'.format(bundle_prefix, datetime.datetime.today().isoformat()),
             entries=entries,
             location='Journal',
+            year=datetime.datetime.today().year
         )
         return self.save_bundle_list(data)
 
@@ -138,6 +139,7 @@ class Accounts:
             bundle_name='{} {}'.format(bundle_prefix, datetime.datetime.today().isoformat()),
             entries=entries,
             location='Journal',
+            year=datetime.datetime.today().year
         )
         return self.save_bundle_list(data)
 
@@ -191,7 +193,7 @@ class Accounts:
         # BUNDLE
         #
         bundle = api.factory.create('Bundle')
-        year = int(entries[0]['date'][:4])
+        year = int(data.get('year', datetime.datetime.today().year))
 
         # The YearId is set to the current year of the bundle. e.g. 2017.
         bundle.YearId = int(year)
