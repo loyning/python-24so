@@ -193,10 +193,9 @@ class Accounts:
         # BUNDLE
         #
         bundle = api.factory.create('Bundle')
-        year = int(data.get('year', datetime.datetime.today().year))
 
         # The YearId is set to the current year of the bundle. e.g. 2017.
-        bundle.YearId = int(year)
+        bundle.YearId = int(data.get('year', datetime.datetime.today().year))
         # Can be defined for either Bundle or Voucher. This is an entry type.
         # The No property from GetTransactionTypes is used.
         bundle.Sort = 1
