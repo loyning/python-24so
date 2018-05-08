@@ -119,26 +119,36 @@ class Accounts:
 
         return data
 
-    def save_entries_as_bundle(self, entries, bundle_prefix='AI'):
+    def save_entries_as_bundle(self, entries, images=[], bundle_prefix='AI', location='Journal'):
+        if images:
+            res = self._client.attachment.upload_files(images, location=location)
+            for e in entries:
+                e['stamp_no'] = res['StampNo']
+
         data = dict(
             allow_difference=True,
             direct_ledger=False,
             save_option=1,
             bundle_name='{} {}'.format(bundle_prefix, datetime.datetime.today().isoformat()),
             entries=entries,
-            location='Journal',
+            location=location,
             year=datetime.datetime.today().year
         )
         return self.save_bundle_list(data)
 
-    def save_entries_to_ledger(self, entries, bundle_prefix='AI'):
+    def save_entries_to_ledger(self, entries, images=[], bundle_prefix='AI', location='Journal'):
+        if images:
+            res = self._client.attachment.upload_files(images, location=location)
+            for e in entries:
+                e['stamp_no'] = res['StampNo']
+
         data = dict(
             allow_difference=True,
             direct_ledger=True,
             save_option=0,
             bundle_name='{} {}'.format(bundle_prefix, datetime.datetime.today().isoformat()),
             entries=entries,
-            location='Journal',
+            location=location,
             year=datetime.datetime.today().year
         )
         return self.save_bundle_list(data)
