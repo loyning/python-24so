@@ -119,7 +119,7 @@ class Accounts:
 
         return data
 
-    def save_entries_as_bundle(self, entries, images=[], bundle_prefix='AI', location='Journal'):
+    def save_entries_as_bundle(self, entries, images=[], bundle_prefix='AI', location='Journal', bundle_name=None):
         if images:
             res = self._client.attachment.upload_files(images, location=location)
             for e in entries:
@@ -134,9 +134,13 @@ class Accounts:
             location=location,
             year=datetime.datetime.today().year
         )
+
+        if bundle_name:
+            data['bundle_name'] = bundle_name
+
         return self.save_bundle_list(data)
 
-    def save_entries_to_ledger(self, entries, images=[], bundle_prefix='AI', location='Journal'):
+    def save_entries_to_ledger(self, entries, images=[], bundle_prefix='AI', location='Journal', bundle_name=None):
         if images:
             res = self._client.attachment.upload_files(images, location=location)
             for e in entries:
@@ -151,6 +155,10 @@ class Accounts:
             location=location,
             year=datetime.datetime.today().year
         )
+
+        if bundle_name:
+            data['bundle_name'] = bundle_name
+
         return self.save_bundle_list(data)
 
     def save_bundle_list(self, data):
