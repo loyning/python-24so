@@ -112,7 +112,7 @@ class Attachment:
 
             # max chunk size
             # max_length = api.service.GetMaxRequestLength()
-            max_length = 2500
+            max_length = 2000 * 1024
 
             # upload the files
             offset = 0
