@@ -117,7 +117,7 @@ class Attachment:
 
             # max chunk size
             # max_length = api.service.GetMaxRequestLength()
-            max_length = 2500
+            max_length = 2000 * 1024
 
             # upload the files
             offset = 0
@@ -148,7 +148,8 @@ class Attachment:
     def download_stamp_no(self, stamp_no):
         api = self._client._get_client(self._service)
 
-        maxlength = api.service.GetMaxRequestLength()
+        # maxlength = api.service.GetMaxRequestLength()
+        max_length = 2000 * 1024
 
         fsp = api.factory.create('FileSearchParameters')
         fsp.StampNo.int.append(stamp_no)
@@ -158,8 +159,8 @@ class Attachment:
         filesize = api.service.GetSize(fileinfo[0])
 
         content = ''
-        for offset in range(0, filesize, maxlength):
-            data = api.service.DownloadChunk(fileinfo[0], offset, maxlength)
+        for offset in range(0, filesize, max_length):
+            data = api.service.DownloadChunk(fileinfo[0], offset, max_length)
             content += base64.b64decode(data)
         data = api.service.DownloadChunk(fileinfo[0], offset, filesize - offset)
         content += base64.b64decode(data)
