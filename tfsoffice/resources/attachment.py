@@ -7,7 +7,7 @@ class Attachment:
         self._client = client
         self._service = 'Attachment'
 
-    def upload_file(self, path, location='Journal'):
+    def upload_file(self, path, location='Journal', stamp_no=None):
         api = self._client._get_client(self._service)
 
         if path.lower().endswith('.jpeg') or path.lower().endswith('.jpg'):
@@ -37,7 +37,10 @@ class Attachment:
         frame = api.factory.create('ImageFrameInfo')
         frame.Id = 1  # PAGE_NO = always 1
         frame.Status = 0
-        frame.StampNo = api.service.GetStampNo()
+        if stamp_no:
+            frame.StampNo = stamp_no
+        else:
+            frame.StampNo = api.service.GetStampNo()
 
         # add the frame/image to the file object via the array of image frame info
         file_obj.FrameInfo.ImageFrameInfo.append(frame)
@@ -70,14 +73,16 @@ class Attachment:
         )
         # return self._client._get_collection(method, None)
 
-    def upload_files(self, images, location='Journal'):
+    def upload_files(self, images, location='Journal', stamp_no=None):
         api = self._client._get_client(self._service)
 
         loc = api.factory.create('AttachmentLocation')
         if not hasattr(loc, location):
             raise AttributeError('Location not supported')
 
-        stamp_no = api.service.GetStampNo()
+        if not stamp_no:
+            stamp_no = api.service.GetStampNo()
+
         files = []
 
         for frame_no, path in enumerate(images):
