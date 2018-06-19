@@ -1,4 +1,5 @@
 import datetime
+import re
 
 
 class Accounts:
@@ -125,6 +126,11 @@ class Accounts:
             for e in entries:
                 e['stamp_no'] = res['StampNo']
 
+        year = list(set([re.sub(r'-\d\d-\d\d', '', e['date']) for e in entries]))
+        if len(year) > 1:
+            raise ValueError('Multiple years found in entries')
+        year = int(year[0])
+
         data = dict(
             allow_difference=True,
             direct_ledger=False,
@@ -132,7 +138,7 @@ class Accounts:
             bundle_name='{} {}'.format(bundle_prefix, datetime.datetime.today().isoformat()),
             entries=entries,
             location=location,
-            year=datetime.datetime.today().year
+            year=year
         )
 
         if bundle_name:
@@ -146,6 +152,11 @@ class Accounts:
             for e in entries:
                 e['stamp_no'] = res['StampNo']
 
+        year = list(set([re.sub(r'-\d\d-\d\d', '', e['date']) for e in entries]))
+        if len(year) > 1:
+            raise ValueError('Multiple years found in entries')
+        year = int(year[0])
+
         data = dict(
             allow_difference=True,
             direct_ledger=True,
@@ -153,7 +164,7 @@ class Accounts:
             bundle_name='{} {}'.format(bundle_prefix, datetime.datetime.today().isoformat()),
             entries=entries,
             location=location,
-            year=datetime.datetime.today().year
+            year=year
         )
 
         if bundle_name:

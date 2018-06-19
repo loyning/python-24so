@@ -257,7 +257,7 @@ class Client:
         # check response
         # assert status == 200, 'Status is %s' % status
         if type(results) is Text:
-            output['results'] = list(results)
+            output['results'] = [str(results), ]
             return output
 
         # raise Exception if result is anything but a List
