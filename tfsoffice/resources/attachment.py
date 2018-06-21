@@ -157,16 +157,29 @@ class Attachment:
 
         fileinfo = api.service.GetFileInfo(fsp)
 
-        filesize = api.service.GetSize(fileinfo[0])
+        results = []
+        for imagefile in fileinfo.ImageFile:
+            filesize = api.service.GetSize(imagefile)
 
-        content = six.binary_type('', 'ascii')
-        for offset in range(0, filesize, max_length):
-            data = api.service.DownloadChunk(fileinfo[0], offset, max_length)
-            content += base64.b64decode(six.binary_type(data, 'ascii'))
+            content = six.binary_type('')
+            for offset in range(0, filesize, max_length):
+                data = api.service.DownloadChunk(imagefile, offset, max_length)
+                content += base64.b64decode(six.binary_type(data))
+            data = api.service.DownloadChunk(imagefile, offset, filesize - offset)
+            content += base64.b64decode(six.binary_type(data))
 
-        data = api.service.DownloadChunk(fileinfo[0], offset, filesize - offset)
-        if data:
-            content += base64.b64decode(six.binary_type(data, 'ascii'))
+            buf = BytesIO(content)
 
-        buf = BytesIO(content)
-        return buf
+            fileframe = None
+            if imagefile.FrameInfo.ImageFrameInfo:
+                fileframe = imagefile.FrameInfo.ImageFrameInfo[0].Id
+
+            results.append(dict(
+                FileId=imagefile.Id,
+                FileFrame=fileframe,
+                Type=imagefile.Type,
+                StampNo=imagefile.StampNo,
+                Size=filesize,
+                buffer=buf
+            ))
+        return results
