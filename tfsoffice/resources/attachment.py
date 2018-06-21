@@ -1,5 +1,6 @@
 import base64
 from io import BytesIO
+import six
 
 
 class Attachment:
@@ -158,12 +159,14 @@ class Attachment:
 
         filesize = api.service.GetSize(fileinfo[0])
 
-        content = ''
+        content = six.binary_type('', 'ascii')
         for offset in range(0, filesize, max_length):
             data = api.service.DownloadChunk(fileinfo[0], offset, max_length)
-            content += base64.b64decode(data)
+            content += base64.b64decode(six.binary_type(data, 'ascii'))
+
         data = api.service.DownloadChunk(fileinfo[0], offset, filesize - offset)
-        content += base64.b64decode(data)
+        if data:
+            content += base64.b64decode(six.binary_type(data, 'ascii'))
 
         buf = BytesIO(content)
         return buf
