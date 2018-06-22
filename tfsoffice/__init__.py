@@ -5,7 +5,7 @@ from .client import Client  # noqa
 from .soap import TwentyFour  # noqa
 
 __title__ = 'tfsoffice'
-__version__ = '0.1.991'
+__version__ = '0.1.992'
 __copyright__ = 'Copyright 2017 Dataselskapet AS'
 __author__ = 'rune@loyning.net'
 __all__ = ['TwentyFour', 'Client']  # noqa
