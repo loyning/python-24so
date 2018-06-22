@@ -3,6 +3,14 @@ from io import BytesIO
 import six
 
 
+def binary_type(data):
+    args = [data]
+    if six.PY3:
+        args.append('ascii')
+
+    return six.binary_type(*args)
+
+
 class Attachment:
     def __init__(self, client=None):
         self._client = client
@@ -161,12 +169,12 @@ class Attachment:
         for imagefile in fileinfo.ImageFile:
             filesize = api.service.GetSize(imagefile)
 
-            content = six.binary_type('')
+            content = binary_type('')
             for offset in range(0, filesize, max_length):
                 data = api.service.DownloadChunk(imagefile, offset, max_length)
-                content += base64.b64decode(six.binary_type(data))
+                content += base64.b64decode(binary_type(data))
             data = api.service.DownloadChunk(imagefile, offset, filesize - offset)
-            content += base64.b64decode(six.binary_type(data))
+            content += base64.b64decode(binary_type(data))
 
             buf = BytesIO(content)
 
