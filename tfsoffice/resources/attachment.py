@@ -179,15 +179,15 @@ class Attachment:
             buf = BytesIO(content)
 
             fileframe = None
-            if imagefile.FrameInfo.ImageFrameInfo:
-                fileframe = imagefile.FrameInfo.ImageFrameInfo[0].Id
+            for frame in imagefile.FrameInfo.ImageFrameInfo:
+                fileframe = frame.Id
 
-            results.append(dict(
-                FileId=imagefile.Id,
-                FileFrame=fileframe,
-                Type=imagefile.Type,
-                StampNo=imagefile.StampNo,
-                Size=filesize,
-                buffer=buf
-            ))
+                results.append(dict(
+                    FileId=imagefile.Id,
+                    FileFrame=fileframe,
+                    Type=imagefile.Type,
+                    StampNo=imagefile.StampNo,
+                    Size=filesize,
+                    buffer=buf
+                ))
         return results
