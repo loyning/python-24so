@@ -11,7 +11,7 @@ class Transactions:
 
         return self._client._get_collection(method, None)
 
-    def get_transactions(self, date_start, date_end, system_type='Miscellaneous', invoice_no=None, project_id=None, transaction_type_id=None, customer_id=None, stamp_no=None, account_no_start=None, account_no_end=None, transaction_no_start=None, transaction_no_end=None, has_invoice_id=None):
+    def get_transactions(self, date_start, date_end, system_type='Miscellaneous', invoice_no=None, project_id=None, transaction_type_id=None, customer_id=None, account_no_start=None, account_no_end=None, transaction_no_start=None, transaction_no_end=None, has_invoice_id=None):
 
         api = self._client._get_client(self._service)
 
@@ -31,7 +31,6 @@ class Transactions:
         params.TransactionNoStart = transaction_no_start
         params.TransactionNoEnd = transaction_no_end
         params.TransactionTypeId = transaction_type_id
-        params.StampNo = stamp_no
         params.SystemType = tss[system_type]
 
         # transactions = api.service.GetTransactions(searchParams=params)
