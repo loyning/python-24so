@@ -56,7 +56,7 @@ class Accounts:
                     due_date="2018-01-30",
                     department_id=None,  # optional
                     project_id=None,  # optional
-                    invoice_refno=None,  # optional
+                    invoice_refno=123,  # optional
                     bankaccount='28002222222',
                     currency_id="NOK",  # defaults to NOK
                     currency_rate=None,  # optional
@@ -77,7 +77,7 @@ class Accounts:
                     due_date="2018-01-30",
                     department_id=None,  # optional
                     project_id=None,  # optional
-                    invoice_refno=None,  # optional
+                    invoice_refno=123,  # optional
                     bankaccount='28002222222',
                     currency_id="NOK",  # defaults to NOK
                     currency_rate=None,  # optional
@@ -98,7 +98,7 @@ class Accounts:
                     due_date="2018-01-30",
                     department_id=None,  # optional
                     project_id=None,  # optional
-                    invoice_refno=None,  # optional
+                    invoice_refno=123,  # optional
                     bankaccount='28002222222',
                     currency_id="NOK",  # defaults to NOK
                     currency_rate=None,  # optional
@@ -116,7 +116,8 @@ class Accounts:
             result = self._client.attachment.upload_file(imagepath, location)
             stamp_no = result['StampNo']
 
-            data['entries'][0]['stamp_no'] = stamp_no
+            for e in data['entries']:
+                e['stamp_no'] = stamp_no
 
         return data
 
@@ -206,15 +207,6 @@ class Accounts:
         # Attachments
         attachments = {}
 
-        # Get the TransactionNo
-        # We assume that all the entries belong to the same transaction
-        e = api.factory.create('EntryId')
-        e.Date = datetime.datetime.today()
-        e.SortNo = 3  # incoming invoice
-        e.EntryNo = 1  # temp value
-        e = api.service.GetEntryId(e)
-        transaction_id = e.EntryNo
-
         # cached stamp
         cache_stamp = None
 
@@ -237,73 +229,87 @@ class Accounts:
         if bundlelist.SaveOption:
             bundle.BundleDirectAccounting = False
 
+        # Get the next available TransactionNo
+        entry_id = api.factory.create('EntryId')
+        entry_id.Date = datetime.datetime.today()
+        entry_id.SortNo = 3  # incoming invoice/creditnote
+        entry_id.EntryNo = 1  # temp value
+        entry_id = api.service.GetEntryId(entry_id)
+
         #
-        # VOUCHER
+        # Find unique invoices in entries
         #
-        # This the transaction number of the voucher.
-        voucher = api.factory.create('Voucher')
+        invoice_refs = list(set([entry['invoice_refno'] for entry in entries]))
 
-        # You can get the next available number by sending a request to GetEntryId.
-        voucher.TransactionNo = transaction_id
-
-        # Can be defined for either Bundle or Voucher. This is an entry type. The No property from
-        # GetTransactionTypes is used.
-        voucher.Sort = 1
-
-        for row in entries:
+        for pos, invoice_ref in enumerate(invoice_refs):
             #
-            # ENTRY
+            # VOUCHER / invoice
             #
-            entry = api.factory.create('Entry')
-            entry.CustomerId = row.get('customer_id', None)
-            entry.AccountId = row.get('account_no', None)
-            if row.get('date', None):
-                entry.Date = datetime.datetime.strptime(row['date'], '%Y-%m-%d')
-            if row.get('due_date', None):
-                entry.DueDate = datetime.datetime.strptime(row['due_date'], '%Y-%m-%d')
-            entry.Period = row.get('period', None)
-            entry.Amount = row.get('amount', None)  # this is the amount INCL VAT
-            entry.CurrencyId = row.get('currency_id', 'NOK')
-            entry.CurrencyRate = row.get('currency_rate', None)
-            entry.CurrencyUnit = row.get('currency_unit', None)
-            entry.DepartmentId = row.get('department_id', None)
-            entry.ProjectId = row.get('project_id', None)
-            entry.InvoiceReferenceNo = row.get('invoice_refno', None)
-            entry.InvoiceOcr = row.get('invoice_kid', None)
-            entry.TaxNo = row.get('tax_no', 0)
-            entry.BankAccountNo = row.get('bankaccount', None)
-            entry.Comment = row.get('comment', None)
+            # This the transaction number of the voucher.
+            voucher = api.factory.create('Voucher')
 
-            # attachments
-            entry.StampNo = row.get('stamp_no', cache_stamp)
-            imagepath = row.get('imagepath', None)
-            if row.get('stamp_no', cache_stamp):
+            # Can be defined for either Bundle or Voucher. This is an entry type. The No property from
+            # GetTransactionTypes is used.
+            voucher.Sort = 1
+
+            voucher.TransactionNo = entry_id.EntryNo + pos
+
+            voucher_entries = [e for e in entries if e['invoice_refno'] == invoice_ref]
+
+            for row in voucher_entries:
+                #
+                # ENTRY / a single transaction
+                #
+                entry = api.factory.create('Entry')
+                entry.CustomerId = row.get('customer_id', None)
+                entry.AccountId = row.get('account_no', None)
+                if row.get('date', None):
+                    entry.Date = datetime.datetime.strptime(row['date'], '%Y-%m-%d')
+                if row.get('due_date', None):
+                    entry.DueDate = datetime.datetime.strptime(row['due_date'], '%Y-%m-%d')
+                entry.Period = row.get('period', None)
+                entry.Amount = row.get('amount', None)  # this is the amount INCL VAT
+                entry.CurrencyId = row.get('currency_id', 'NOK')
+                entry.CurrencyRate = row.get('currency_rate', None)
+                entry.CurrencyUnit = row.get('currency_unit', None)
+                entry.DepartmentId = row.get('department_id', None)
+                entry.ProjectId = row.get('project_id', None)
+                entry.InvoiceReferenceNo = row.get('invoice_refno', None)
+                entry.InvoiceOcr = row.get('invoice_kid', None)
+                entry.TaxNo = row.get('tax_no', 0)
+                entry.BankAccountNo = row.get('bankaccount', None)
+                entry.Comment = row.get('comment', None)
+
+                # attachments
                 entry.StampNo = row.get('stamp_no', cache_stamp)
+                imagepath = row.get('imagepath', None)
+                if row.get('stamp_no', cache_stamp):
+                    entry.StampNo = row.get('stamp_no', cache_stamp)
 
-            elif imagepath:
-                # print('Found attachment: ', imagepath)
-                if imagepath not in attachments:
-                    print('Uploading attachment...')
-                    result = self._client.attachment.upload_file(imagepath, location)
-                    attachments[imagepath] = result['StampNo']
-                entry.StampNo = attachments[imagepath]
+                elif imagepath:
+                    # print('Found attachment: ', imagepath)
+                    if imagepath not in attachments:
+                        print('Uploading attachment...')
+                        result = self._client.attachment.upload_file(imagepath, location)
+                        attachments[imagepath] = result['StampNo']
+                    entry.StampNo = attachments[imagepath]
 
-            else:
-                # create a stamp number
-                # print('create stamp number')
-                att = self._client._get_client('Attachment')
-                cache_stamp = att.service.GetStampNo()
-                # print('Created stamp number: ', entry.StampNo)
-            cache_stamp = entry.StampNo
+                else:
+                    # create a stamp number
+                    # print('create stamp number')
+                    att = self._client._get_client('Attachment')
+                    cache_stamp = att.service.GetStampNo()
+                    # print('Created stamp number: ', entry.StampNo)
+                cache_stamp = entry.StampNo
 
-            if row.get('link_id', None):
-                entry.LinkId = row['link_id']
+                if row.get('link_id', None):
+                    entry.LinkId = row['link_id']
 
-            # add entry to voucher
-            voucher.Entries.Entry.append(entry)
+                # add entry to voucher
+                voucher.Entries.Entry.append(entry)
 
-        # add voucher to bundle
-        bundle.Vouchers.Voucher.append(voucher)
+            # add voucher to bundle
+            bundle.Vouchers.Voucher.append(voucher)
 
         # add bundle to bundlelist
         bundlelist.Bundles.Bundle.append(bundle)
