@@ -21,7 +21,7 @@ if sys.version_info.major == 3:
     requirements = ["suds-py3", ]
 
 setup(
-    name="python-24so",
+    name="tfsoffice",
     version=__version__,
     description='Python wrapper for the 24sevenoffice SOAP api',
     long_description="This API requires a valid account to 24SevenOffice.com and an API key",
