@@ -159,9 +159,9 @@ class Accounts:
         year = int(year[0])
 
         data = dict(
-            allow_difference=True,
+            allow_difference=False,
             direct_ledger=True,
-            save_option=0,
+            save_option=0,  # direct to ledger
             bundle_name='{} {}'.format(bundle_prefix, datetime.datetime.today().isoformat()),
             entries=entries,
             location=location,
@@ -172,6 +172,14 @@ class Accounts:
             data['bundle_name'] = bundle_name
 
         return self.save_bundle_list(data)
+
+    def print_entries(self, entries):
+        accounts = self._client.accounts.get_taxcode_list()['results']
+        account_list = dict([(row['TaxNo'], row) for row in accounts])
+
+        for row in entries:
+            vat_account = account_list[str(row['tax_no'])]
+            print(row['comment'][:40].ljust(40), row['amount'], row['tax_no'], vat_account['AccountNo'])
 
     def save_bundle_list(self, data):
         api = self._client._get_client(self._service)
@@ -210,6 +218,8 @@ class Accounts:
         # cached stamp
         cache_stamp = None
 
+        transaction_numbers = []
+
         #
         # BUNDLE
         #
@@ -231,7 +241,8 @@ class Accounts:
 
         # Get the next available TransactionNo
         entry_id = api.factory.create('EntryId')
-        entry_id.Date = datetime.datetime.today()
+        today = datetime.datetime.today()
+        entry_id.Date = datetime.datetime(data['year'], today.month, today.day)
         entry_id.SortNo = 3  # incoming invoice/creditnote
         entry_id.EntryNo = 1  # temp value
         entry_id = api.service.GetEntryId(entry_id)
@@ -253,6 +264,7 @@ class Accounts:
             voucher.Sort = 1
 
             voucher.TransactionNo = entry_id.EntryNo + pos
+            transaction_numbers.append(voucher.TransactionNo)
 
             voucher_entries = [e for e in entries if e['invoice_refno'] == invoice_ref]
 
@@ -314,4 +326,9 @@ class Accounts:
         # add bundle to bundlelist
         bundlelist.Bundles.Bundle.append(bundle)
 
-        return self._client._get(method, bundlelist)
+        response = self._client._get(method, bundlelist)
+        response['transaction_ids'] = transaction_numbers
+        # response['bundlelist'] = bundlelist
+        response['stamp_no'] = cache_stamp
+
+        return response
