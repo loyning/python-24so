@@ -1,6 +1,7 @@
+import suds
 import base64
-from io import BytesIO
 import six
+from io import BytesIO
 
 
 def binary_type(data):
@@ -167,7 +168,7 @@ class Attachment:
 
         results = []
 
-        if isinstance(fileinfo, str):
+        if isinstance(fileinfo, suds.sax.text.Text):
             return results
 
         for imagefile in fileinfo.ImageFile:
