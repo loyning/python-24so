@@ -166,6 +166,10 @@ class Attachment:
         fileinfo = api.service.GetFileInfo(fsp)
 
         results = []
+
+        if isinstance(fileinfo, str):
+            return results
+
         for imagefile in fileinfo.ImageFile:
             filesize = api.service.GetSize(imagefile)
 
