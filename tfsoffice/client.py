@@ -218,7 +218,7 @@ class Client:
             else:
                 result = method(params)
         except WebFault as ex:
-            raise exceptions.WebFault(ex.fault.faultstring, ex.fault.detail, ex.fault.faultcode)
+            raise exceptions.WebFault(ex.fault.faultstring, detail=ex.fault.detail, faultcode=ex.fault.faultcode, params=params)
 
         # message = api.last_received()
         # text = message.children[0].children[0].children[0].children[1].text
@@ -252,7 +252,7 @@ class Client:
             else:
                 results = method(params)
         except WebFault as ex:
-            raise exceptions.WebFault(ex.fault.faultstring, ex.fault.detail, ex.fault.faultcode)
+            raise exceptions.WebFault(ex.fault.faultstring, detail=ex.fault.detail, faultcode=ex.fault.faultcode, params=params)
 
         # check response
         # assert status == 200, 'Status is %s' % status
