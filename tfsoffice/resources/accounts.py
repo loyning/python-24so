@@ -273,6 +273,8 @@ class Accounts:
                 # ENTRY / a single transaction
                 #
                 entry = api.factory.create('Entry')
+                if row.get('position', None) is not None:
+                    entry.SequenceId = row.get('position', None)
                 entry.CustomerId = row.get('customer_id', None)
                 entry.AccountId = row.get('account_no', None)
                 if row.get('date', None):
