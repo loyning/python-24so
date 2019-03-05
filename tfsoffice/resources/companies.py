@@ -74,7 +74,7 @@ class Companies:
         def build_company(attrs):
             company = api.factory.create('Company')
 
-            for key, value in attrs.iteritems():
+            for key, value in attrs.items():
                 if key == 'Type':
                     value = getattr(company_types, value)
 
@@ -83,7 +83,7 @@ class Companies:
             return company
 
         params = api.factory.create('ArrayOfCompany')
-        params.Company = map(build_company, companies)
+        params.Company = list(map(build_company, companies))
 
         method = api.service.SaveCompanies
 

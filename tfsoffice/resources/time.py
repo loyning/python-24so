@@ -16,7 +16,7 @@ class Time:
         api = self._client._get_client(self._service)
 
         params = api.factory.create('HourSearch')
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             setattr(params, key, value)
 
         method = api.service.GetHours

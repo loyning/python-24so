@@ -16,7 +16,7 @@ logger = logging.getLogger('suds.client')
 
 # Create a dict of resource classes
 RESOURCE_CLASSES = {}
-for name, module in resources.__dict__.items():
+for name, module in list(resources.__dict__.items()):
     classified_name = string.capwords(name, '_').replace('_', '')
     if isinstance(module, ModuleType) and classified_name in module.__dict__:
         RESOURCE_CLASSES[name] = module.__dict__[classified_name]
@@ -163,7 +163,7 @@ class Client:
         self._options = _merge(self._DEFAULTS, options)
 
         # intializes each resource, injecting this client object into the constructor
-        for name, Klass in RESOURCE_CLASSES.items():
+        for name, Klass in list(RESOURCE_CLASSES.items()):
             setattr(self, name, Klass(self))
 
     def _authenticate(

@@ -179,7 +179,7 @@ class Accounts:
 
         for row in entries:
             vat_account = account_list[str(row['tax_no'])]
-            print(row['comment'][:40].ljust(40), row['amount'], row['tax_no'], vat_account['AccountNo'])
+            print((row['comment'][:40].ljust(40), row['amount'], row['tax_no'], vat_account['AccountNo']))
 
     def save_bundle_list(self, data):
         api = self._client._get_client(self._service)

@@ -26,7 +26,7 @@ class Invoice:
         api = self._client._get_client(self._service)
 
         params = api.factory.create('InvoiceDocumentSearchParameters')
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             setattr(params, key, value)
 
         status, result = api.service.GetInvoiceDocument(params)
