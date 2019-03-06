@@ -35,7 +35,7 @@ install:
 #   - python manage.py migrate
 #   - python manage.py createinitialrevisions
 
-script: pytest --pep8 --flakes --doctest-modules --doctest-ignore-import-errors --doctest-continue-on-failure --html=report.html --self-contained-html --cov=vic --cov-report=html --verboseytest *
+script: pytest *
 
 # before_script:
 #   - cp docker-compose.travis.yml docker-compose.yml
