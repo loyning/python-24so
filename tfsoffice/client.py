@@ -152,14 +152,20 @@ class Client:
             try:
                 session_id = self._authenticate(username, password, applicationid, identityid)
             except WebFault as ex:
-                raise exceptions.IdentityBlockedException(
-                    ex.fault.faultstring,
-                    detail=ex.fault.detail,
-                    faultcode=ex.fault.faultcode,
-                    params=dict(
-                        username=username,
-                        identityid=identityid
+                if 'The provided IdentityId is blocked' in ex.fault.faultstring:
+                    raise exceptions.IdentityBlockedException(
+                        ex.fault.faultstring,
+                        detail=ex.fault.detail,
+                        faultcode=ex.fault.faultcode,
+                        params=dict(
+                            username=username,
+                            identityid=identityid
+                        )
                     )
+                raise exceptions.WebFault(
+                    message=ex.fault.faultstring,
+                    detail=ex.fault.detail,
+                    faultcode=ex.fault.faultcode
                 )
 
             assert session_id, 'Authentication failure'
@@ -228,7 +234,12 @@ class Client:
             else:
                 result = method(params)
         except WebFault as ex:
-            raise exceptions.WebFault(ex.fault.faultstring, detail=ex.fault.detail, faultcode=ex.fault.faultcode, params=params)
+            raise exceptions.WebFault(
+                message=ex.fault.faultstring,
+                detail=ex.fault.detail,
+                faultcode=ex.fault.faultcode,
+                params=params
+            )
 
         # message = api.last_received()
         # text = message.children[0].children[0].children[0].children[1].text
@@ -262,7 +273,12 @@ class Client:
             else:
                 results = method(params)
         except WebFault as ex:
-            raise exceptions.WebFault(ex.fault.faultstring, detail=ex.fault.detail, faultcode=ex.fault.faultcode, params=params)
+            raise exceptions.WebFault(
+                message=ex.fault.faultstring,
+                detail=ex.fault.detail,
+                faultcode=ex.fault.faultcode,
+                params=params
+            )
 
         # check response
         # assert status == 200, 'Status is %s' % status
