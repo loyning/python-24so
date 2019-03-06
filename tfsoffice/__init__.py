@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from .client import Client  # noqa
-# for backwards compability
-from .soap import TwentyFour  # noqa
+from tfsoffice.client import Client  # noqa
 
 __title__ = 'tfsoffice'
-__version__ = '0.1.9991'
+__version__ = '0.1.9993'
 __copyright__ = 'Copyright 2017 Dataselskapet AS'
 __author__ = 'rune@loyning.net'
-__all__ = ['TwentyFour', 'Client']  # noqa
+__all__ = ['Client', ]
 
 RELATED_DOCS_TEXT = "See https://github.com/loyning/python-24so \
 for usage examples."
