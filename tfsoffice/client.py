@@ -4,9 +4,9 @@ from types import ModuleType
 from suds.client import Client as SudsClient
 from suds.sax.text import Text
 from suds import WebFault
-from .utils import node_to_dict
-from . import exceptions
-from . import resources
+from tfsoffice.utils import node_to_dict
+from tfsoffice import exceptions
+from tfsoffice import resources
 # from . import error, resources, __version__  # noqa
 
 import string

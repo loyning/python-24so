@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from .client import Client  # noqa
-# for backwards compability
-from .soap import TwentyFour  # noqa
+from tfsoffice.client import Client  # noqa
 
 __title__ = 'tfsoffice'
-__version__ = '0.1.9992'
+__version__ = '0.1.9993'
 __copyright__ = 'Copyright 2017 Dataselskapet AS'
 __author__ = 'rune@loyning.net'
 __all__ = ['TwentyFour', 'Client']  # noqa
