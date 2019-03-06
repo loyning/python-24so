@@ -149,8 +149,18 @@ class Client:
 
         else:
             # authenticate
-            session_id = self._authenticate(
-                username, password, applicationid, identityid)
+            try:
+                session_id = self._authenticate(username, password, applicationid, identityid)
+            except WebFault as ex:
+                raise exceptions.IdentityBlockedException(
+                    ex.fault.faultstring,
+                    detail=ex.fault.detail,
+                    faultcode=ex.fault.faultcode,
+                    params=dict(
+                        username=username,
+                        identityid=identityid
+                    )
+                )
 
             assert session_id, 'Authentication failure'
 

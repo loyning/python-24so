@@ -11,3 +11,7 @@ class WebFault(Exception):
 
 class TooManyResultsException(Exception):
     pass
+
+
+class IdentityBlockedException(WebFault):
+    pass
