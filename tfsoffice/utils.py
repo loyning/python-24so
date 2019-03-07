@@ -10,7 +10,7 @@ def node_to_dict(node):
     if isinstance(node, six.string_types) or isinstance(node, six.text_type):
         return node
     elif type(node) is Text:
-        return unicode(node)
+        return str(node)
     elif isinstance(node, six.integer_types):
         return node
     elif type(node) is bool:

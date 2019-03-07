@@ -172,7 +172,7 @@ class TwentyFour(object):
 
         # create a basic search
         project_search = client.factory.create('ProjectSearch')
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             setattr(project_search, key, value)
 
         # search for projects
@@ -223,7 +223,7 @@ class TwentyFour(object):
                                 'PhoneNumbers', 'Maps', 'Relations', 'CurrencyId']
 
         params = client.factory.create('CompanySearchParameters')
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             setattr(params, key, value)
 
         status, result = client.service.GetCompanies(params, return_values)
@@ -274,7 +274,7 @@ class TwentyFour(object):
         company.PhoneNumbers.Work.Value = kwargs.pop('phone', None)
 
         # apply kwargs
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             setattr(company, key, value)
 
         # Send a list of companies
