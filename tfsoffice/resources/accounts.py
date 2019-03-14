@@ -181,9 +181,8 @@ class Accounts:
             vat_account = account_list[str(row['tax_no'])]
             print((row['comment'][:40].ljust(40), row['amount'], row['tax_no'], vat_account['AccountNo']))
 
-    def save_bundle_list(self, data):
+    def create_bundlelist(self, data):
         api = self._client._get_client(self._service)
-        method = api.service.SaveBundleList
 
         # attachment location
         location = data.get('location', 'Journal')
@@ -327,9 +326,30 @@ class Accounts:
 
         # add bundle to bundlelist
         bundlelist.Bundles.Bundle.append(bundle)
+        return bundlelist
+
+    def save_bundle_list(self, data):
+        api = self._client._get_client(self._service)
+        method = api.service.SaveBundleList
+
+        bundlelist = self.create_bundlelist(data)
+
+        transaction_numbers = []
+        stamp_numbers = []
+        for bundle in bundlelist.Bundles.Bundle:
+            for voucher in bundle.Vouchers.Voucher:
+                transaction_numbers.append(voucher.TransactionNo)
+                for entry in voucher.Entries.Entry:
+                    if entry.StampNo:
+                        stamp_numbers.append(entry.StampNo)
+        transaction_numbers = list(set(transaction_numbers))
+        stamp_numbers = list(set(stamp_numbers))
+
+        cache_stamp = stamp_numbers[0] if len(stamp_numbers) else None
 
         response = self._client._get(method, bundlelist)
         response['transaction_ids'] = transaction_numbers
+        response['stamp_numbers'] = stamp_numbers
         # response['bundlelist'] = bundlelist
         response['stamp_no'] = cache_stamp
 
