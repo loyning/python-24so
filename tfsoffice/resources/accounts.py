@@ -39,87 +39,77 @@ class Accounts:
 
         return self._client._get_collection(method, None)
 
-    def _get_test_bundle(self, imagepath=None, location='Journal'):
-        data = dict(
-            allow_difference=True,
-            direct_ledger=False,
-            save_option=1,
-            bundle_name='AI {}'.format(datetime.datetime.today().isoformat()),
-            entries=[
-                dict(
-                    # link_id='internal id',  # must be GUID - xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-                    customer_id=1,
-                    account_no=4350,
+    def _get_test_entries(self):
 
-                    # invoice fields
-                    date="2018-01-20",
-                    due_date="2018-01-30",
-                    department_id=None,  # optional
-                    project_id=None,  # optional
-                    invoice_refno=123,  # optional
-                    bankaccount='28002222222',
-                    currency_id="NOK",  # defaults to NOK
-                    currency_rate=None,  # optional
-                    currency_unit=None,  # optional
+        invoice_ref = datetime.date.today().toordinal()
 
-                    amount=1000,
-                    tax_no=1,
-                    # imagepath='/path/to/and/image',
-                    comment="#13132",  # optional
-                ),
-                dict(
-                    # link_id='internal id',  # must be GUID - xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-                    customer_id=1,
-                    account_no=4350,
+        entries = [
+            dict(
+                # link_id='internal id',  # must be GUID - xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+                customer_id=1,
+                account_no=4350,
 
-                    # invoice fields
-                    date="2018-01-20",
-                    due_date="2018-01-30",
-                    department_id=None,  # optional
-                    project_id=None,  # optional
-                    invoice_refno=123,  # optional
-                    bankaccount='28002222222',
-                    currency_id="NOK",  # defaults to NOK
-                    currency_rate=None,  # optional
-                    currency_unit=None,  # optional
+                # invoice fields
+                date="2018-01-20",
+                due_date="2018-01-30",
+                department_id=None,  # optional
+                project_id=None,  # optional
+                invoice_refno=invoice_ref,  # optional
+                bankaccount='28002222222',
+                currency_id="NOK",  # defaults to NOK
+                currency_rate=None,  # optional
+                currency_unit=None,  # optional
 
-                    amount=250,
-                    tax_no=1,
-                    # imagepath='/path/to/and/image',
-                    comment="#13132",  # optional
-                ),
-                dict(
-                    # link_id='internal id',  # must be GUID - xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-                    customer_id=1,
-                    account_no=2400,
+                amount=1000,
+                tax_no=1,
+                # imagepath='/path/to/and/image',
+                comment="#13132",  # optional
+            ),
+            dict(
+                # link_id='internal id',  # must be GUID - xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+                customer_id=1,
+                account_no=4350,
 
-                    # invoice fields
-                    date="2018-01-20",
-                    due_date="2018-01-30",
-                    department_id=None,  # optional
-                    project_id=None,  # optional
-                    invoice_refno=123,  # optional
-                    bankaccount='28002222222',
-                    currency_id="NOK",  # defaults to NOK
-                    currency_rate=None,  # optional
-                    currency_unit=None,  # optional
+                # invoice fields
+                date="2018-01-20",
+                due_date="2018-01-30",
+                department_id=None,  # optional
+                project_id=None,  # optional
+                invoice_refno=invoice_ref,  # optional
+                bankaccount='28002222222',
+                currency_id="NOK",  # defaults to NOK
+                currency_rate=None,  # optional
+                currency_unit=None,  # optional
 
-                    amount=-1250,
-                    tax_no=0,
-                    # imagepath='/path/to/and/image',
-                    comment="#13132",  # optional
-                ),
-            ]
-        )
+                amount=250,
+                tax_no=1,
+                # imagepath='/path/to/and/image',
+                comment="#13132",  # optional
+            ),
+            dict(
+                # link_id='internal id',  # must be GUID - xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+                customer_id=1,
+                account_no=2400,
 
-        if imagepath:
-            result = self._client.attachment.upload_file(imagepath, location)
-            stamp_no = result['StampNo']
+                # invoice fields
+                date="2018-01-20",
+                due_date="2018-01-30",
+                department_id=None,  # optional
+                project_id=None,  # optional
+                invoice_refno=invoice_ref,  # optional
+                bankaccount='28002222222',
+                currency_id="NOK",  # defaults to NOK
+                currency_rate=None,  # optional
+                currency_unit=None,  # optional
 
-            for e in data['entries']:
-                e['stamp_no'] = stamp_no
+                amount=-1250,
+                tax_no=0,
+                # imagepath='/path/to/and/image',
+                comment="#13132",  # optional
+            ),
+        ]
 
-        return data
+        return entries
 
     def save_entries_as_bundle(self, entries, images=[], bundle_prefix='AI', location='Journal', bundle_name=None):
         if images:
@@ -184,18 +174,25 @@ class Accounts:
     def create_bundlelist(self, data):
         api = self._client._get_client(self._service)
 
-        # attachment location
-        location = data.get('location', 'Journal')
-
         if len(data.get('entries', [])) == 0:
             raise Exception('No entried found.')
 
         entries = data.get('entries', [])
 
+        # group entries by stamp_no to get unique invoices
+        invoices = []
+        for stamp_no in set([e.get('stamp_no', None) for e in entries]):
+            invoices.append(
+                [e for e in entries if e.get('stamp_no', None) == stamp_no]
+            )
+
         #
         # BUNDLE LIST
         #
         bundlelist = api.factory.create('BundleList')
+
+        bundlelist.Bundles = api.factory.create('ArrayOfBundle')
+
         # Allow difference in credit/debit balance.
         # This is only applicable when saving journal data (see SaveOption) below.
         # Default value is false.
@@ -212,10 +209,10 @@ class Accounts:
         bundlelist.SaveOption = data.get('save_option', 1)
 
         # Attachments
-        attachments = {}
+        # attachments = {}
 
         # cached stamp
-        cache_stamp = None
+        # cache_stamp = None
 
         transaction_numbers = []
 
@@ -223,6 +220,7 @@ class Accounts:
         # BUNDLE
         #
         bundle = api.factory.create('Bundle')
+        bundle.Vouchers = api.factory.create('ArrayOfVoucher')
 
         # The YearId is set to the current year of the bundle. e.g. 2017.
         bundle.YearId = int(data.get('year', datetime.datetime.today().year))
@@ -249,14 +247,17 @@ class Accounts:
         #
         # Find unique invoices in entries
         #
-        invoice_refs = list(set([entry['invoice_refno'] for entry in entries]))
+        # invoice_refs = list(set([entry['invoice_refno'] for entry in entries]))
 
-        for pos, invoice_ref in enumerate(invoice_refs):
+        for pos, invoice in enumerate(invoices):
+
             #
             # VOUCHER / invoice
             #
             # This the transaction number of the voucher.
             voucher = api.factory.create('Voucher')
+
+            voucher.Entries = api.factory.create('ArrayOfEntry')
 
             # Can be defined for either Bundle or Voucher. This is an entry type. The No property from
             # GetTransactionTypes is used.
@@ -265,9 +266,7 @@ class Accounts:
             voucher.TransactionNo = entry_id.EntryNo + pos
             transaction_numbers.append(voucher.TransactionNo)
 
-            voucher_entries = [e for e in entries if e['invoice_refno'] == invoice_ref]
-
-            for row in voucher_entries:
+            for row in invoice:
                 #
                 # ENTRY / a single transaction
                 #
@@ -294,26 +293,7 @@ class Accounts:
                 entry.Comment = row.get('comment', None)
 
                 # attachments
-                entry.StampNo = row.get('stamp_no', cache_stamp)
-                imagepath = row.get('imagepath', None)
-                if row.get('stamp_no', cache_stamp):
-                    entry.StampNo = row.get('stamp_no', cache_stamp)
-
-                elif imagepath:
-                    # print('Found attachment: ', imagepath)
-                    if imagepath not in attachments:
-                        print('Uploading attachment...')
-                        result = self._client.attachment.upload_file(imagepath, location)
-                        attachments[imagepath] = result['StampNo']
-                    entry.StampNo = attachments[imagepath]
-
-                else:
-                    # create a stamp number
-                    # print('create stamp number')
-                    att = self._client._get_client('Attachment')
-                    cache_stamp = att.service.GetStampNo()
-                    # print('Created stamp number: ', entry.StampNo)
-                cache_stamp = entry.StampNo
+                entry.StampNo = row.get('stamp_no', None)
 
                 if row.get('link_id', None):
                     entry.LinkId = row['link_id']
