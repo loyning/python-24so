@@ -187,6 +187,14 @@ class Accounts:
             )
 
         #
+        # Add CurrencyRate to entries
+        #
+        rate_res = self._client.client.get_currency_list()
+        rates = dict([(x['Symbol'], x['Rate']) for x in rate_res['results']])
+        for entry in entries:
+            entry['currency_rate'] = rates.get(entry['currency_id'], None) or None
+
+        #
         # BUNDLE LIST
         #
         bundlelist = api.factory.create('BundleList')
