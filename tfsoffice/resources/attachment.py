@@ -138,6 +138,8 @@ class Attachment:
                 part = content[offset:offset + max_length]
                 # part = part.encode('base64')
                 part = base64.b64encode(part)
+                if isinstance(part, bytes):
+                    part = part.decode()
                 # print('uploading offset = {}, bytes = {}'.format(offset, len(part)))
 
                 api.service.AppendChunk(file_obj, part, offset)

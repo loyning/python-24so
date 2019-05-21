@@ -3,7 +3,7 @@
 from tfsoffice.client import Client  # noqa
 
 __title__ = 'tfsoffice'
-__version__ = '0.1.9996'
+__version__ = '0.1.9997'
 __copyright__ = 'Copyright 2017 Dataselskapet AS'
 __author__ = 'rune@loyning.net'
 __all__ = ['Client', ]
