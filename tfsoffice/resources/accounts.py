@@ -111,7 +111,75 @@ class Accounts:
 
         return entries
 
+    def post_invoice(self, entries, bundle_name=None, doc_type='invoice'):
+        # POST - direct to ledger
+        # allow_difference = False
+        # direct_ledger = True
+        # save_option = 0
+
+        pass
+
+    def transfer_invoices(self, invoices, bundle_name=None):
+
+        # location = 'Journal'
+
+        if not bundle_name:
+            bundle_prefix = 'AI'
+            bundle_name = '{} {}'.format(bundle_prefix, datetime.datetime.today().isoformat())
+
+        # TRANSFER
+        allow_difference = True
+        direct_ledger = False
+        save_option = 1
+
+        # The bundle year is set to the current year of the bundle. e.g. 2017.
+        bundle_year = 2019
+
+        bundle_list = dict(
+            allow_difference=allow_difference,
+            direct_ledger=direct_ledger,
+            save_option=save_option,
+            bundle=dict(
+                name=bundle_name,
+                year=bundle_year,
+                sort=1,  # invoice / credit note The No property from GetTransactionTypes is used.
+                vouchers=[
+                    dict(  # invoice
+                        sort=1,  # invoice / credit note The No property from GetTransactionTypes is used.
+                        entries=[
+                            dict(
+                                position=0,  # ordering 0 - X
+                                customer_id=None,  # tfso customer id
+                                account_no=None,  # cost account nr
+                                date=None,  # issue date
+                                due_date=None,
+                                period=None,  # accrual
+                                amount=None,
+                                currency_id='NOK',
+                                currency_unit=1,
+                                currency_rate=1,
+                                project_id=None,
+                                invoice_refno=None,
+                                invoice_kid=None,
+                                tax_no=None,
+                                bankaccount=None,
+                                comment=None,
+                                stamp_no=None,  # attachment / image
+                                link_id=None,
+                            )
+                        ],
+                    )
+                ]
+            )
+        )
+        return bundle_list
+
     def save_entries_as_bundle(self, entries, images=[], bundle_prefix='AI', location='Journal', bundle_name=None):
+        """
+        TRANSFER
+
+        Marcin uploads images and sets stamp_no in entries
+        """
         if images:
             res = self._client.attachment.upload_files(images, location=location)
             for e in entries:
