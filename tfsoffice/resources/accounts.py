@@ -174,7 +174,7 @@ class Accounts:
     #     )
     #     return bundle_list
 
-    def save_entries_as_bundle(self, entries, images=[], bundle_prefix='AI', location='Journal', bundle_name=None):
+    def save_entries_as_bundle(self, entries, images=[], bundle_prefix='AI', location='Journal', bundle_name=None, transaction_type_no=1):
         """
         TRANSFER
 
@@ -197,7 +197,8 @@ class Accounts:
             bundle_name='{} {}'.format(bundle_prefix, datetime.datetime.today().isoformat()),
             entries=entries,
             location=location,
-            year=year
+            year=year,
+            transaction_type_no=transaction_type_no,
         )
 
         if bundle_name:
@@ -205,7 +206,7 @@ class Accounts:
 
         return self.save_bundle_list(data)
 
-    def save_entries_to_ledger(self, entries, images=[], bundle_prefix='AI', location='Journal', bundle_name=None):
+    def save_entries_to_ledger(self, entries, images=[], bundle_prefix='AI', location='Journal', bundle_name=None, transaction_type_no=1):
         if images:
             res = self._client.attachment.upload_files(images, location=location)
             for e in entries:
@@ -223,7 +224,8 @@ class Accounts:
             bundle_name='{} {}'.format(bundle_prefix, datetime.datetime.today().isoformat()),
             entries=entries,
             location=location,
-            year=year
+            year=year,
+            transaction_type_no=transaction_type_no,
         )
 
         if bundle_name:
@@ -307,7 +309,7 @@ class Accounts:
         bundle.YearId = int(data.get('year', datetime.datetime.today().year))
         # Can be defined for either Bundle or Voucher. This is an entry type.
         # The No property from GetTransactionTypes is used.
-        bundle.Sort = 1
+        bundle.Sort = int(data.get('transaction_type_no', 1))
 
         # The name of the bundle.
         bundle.Name = data.get('bundle_name', None)
@@ -342,7 +344,7 @@ class Accounts:
 
             # Can be defined for either Bundle or Voucher. This is an entry type. The No property from
             # GetTransactionTypes is used.
-            voucher.Sort = 1
+            voucher.Sort = int(data.get('transaction_type_no', 1))
 
             voucher.TransactionNo = entry_id.EntryNo + pos
             transaction_numbers.append(voucher.TransactionNo)
