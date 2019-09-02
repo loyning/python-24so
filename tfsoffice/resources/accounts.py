@@ -397,16 +397,15 @@ class Accounts:
 
         bundlelist = self.create_bundlelist(data)
 
-        transaction_numbers = []
-        stamp_numbers = []
+        transaction_numbers = {}
+
         for bundle in bundlelist.Bundles.Bundle:
             for voucher in bundle.Vouchers.Voucher:
-                transaction_numbers.append(voucher.TransactionNo)
                 for entry in voucher.Entries.Entry:
                     if entry.StampNo:
-                        stamp_numbers.append(entry.StampNo)
-        transaction_numbers = list(set(transaction_numbers))
-        stamp_numbers = list(set(stamp_numbers))
+                        transaction_numbers[entry.StampNo] = voucher.TransactionNo
+
+        stamp_numbers = list(transaction_numbers.keys())
 
         cache_stamp = stamp_numbers[0] if len(stamp_numbers) else None
 
