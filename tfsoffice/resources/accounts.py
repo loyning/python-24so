@@ -443,32 +443,39 @@ class Accounts:
         return bundlelist
 
     def save_bundle_list(self, bundlelist):
-        stamp_numbers = []
-        transaction_numbers = []
+        last_transaction_number_by_stamp_number = {}
+        stamp_numbers_for_transaction_number = {}
 
         for bundle in bundlelist.Bundles.Bundle:
             for voucher in bundle.Vouchers.Voucher:
                 for entry in voucher.Entries.Entry:
                     if entry.StampNo:
-                        stamp_numbers.append(entry.StampNo)
-                        transaction_numbers.append(voucher.TransactionNo)
+                        last_transaction_number_by_stamp_number[entry.StampNo] = voucher.TransactionNo
+                        stamp_numbers_for_transaction_number = self.append_to_list_for_key(stamp_numbers_for_transaction_number, voucher.TransactionNo, entry.StampNo)
 
+        stamp_numbers = list(last_transaction_number_by_stamp_number.keys())
         cache_stamp = stamp_numbers[0] if len(stamp_numbers) else None
 
-        response = self.do_save_bundle_list(bundlelist, transaction_numbers, stamp_numbers, cache_stamp)
+        response = self.do_save_bundle_list(bundlelist, stamp_numbers_for_transaction_number, last_transaction_number_by_stamp_number, stamp_numbers, cache_stamp)
 
         return response
 
-    def do_save_bundle_list(self, bundlelist, transaction_numbers, stamp_numbers, cache_stamp):
+    def do_save_bundle_list(self, bundlelist, stamp_numbers_for_transaction_number, last_transaction_number_by_stamp_number, stamp_numbers, cache_stamp):
         api = self._client._get_client(self._service)
         method = api.service.SaveBundleList
 
         response = self._client._get(method, bundlelist)
 
         # Include extra data
-        response['transaction_ids'] = transaction_numbers
+        response['transaction_ids'] = last_transaction_number_by_stamp_number
         response['stamp_numbers'] = stamp_numbers
+        response['stamp_numbers_for_transaction_number'] = stamp_numbers_for_transaction_number
         response['stamp_no'] = cache_stamp
 
         return response
 
+    def append_to_list_for_key(self, dictionary, key, new_value):
+        previous_list = dictionary.get(key, [])
+        new_list = previous_list.append(new_value)
+        dictionary[key] = new_list
+        return dictionary
