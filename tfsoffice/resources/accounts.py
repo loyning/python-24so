@@ -185,10 +185,12 @@ class Accounts:
             for e in entries:
                 e['stamp_no'] = res['StampNo']
 
-        year = list(set([re.sub(r'-\d\d-\d\d', '', e['date']) for e in entries]))
-        if len(year) > 1:
+        years = list(set([re.sub(r'-\d\d-\d\d', '', e['date']) for e in entries]))
+
+        if len(years) > 1:
             raise ValueError('Multiple years found in entries')
-        year = int(year[0])
+
+        year = int(years[0])
 
         data = dict(
             allow_difference=True,
@@ -197,25 +199,29 @@ class Accounts:
             bundle_name='{} {}'.format(bundle_prefix, datetime.datetime.today().isoformat()),
             entries=entries,
             location=location,
-            year=year,
             transaction_type_no=transaction_type_no,
         )
 
         if bundle_name:
             data['bundle_name'] = bundle_name
 
-        return self.save_bundle_list(data)
+        bundle = self.create_bundle(data, year)
+        bundles = [bundle]
 
-    def save_entries_to_ledger(self, entries, images=[], bundle_prefix='AI', location='Journal', bundle_name=None, transaction_type_no=1):
+        bundlelist = self.create_bundlelist(data, bundles, years)
+
+        return self.save_bundle_list(bundlelist)
+
+    def save_entries_to_ledger(self, entries, images=[], bundle_prefix='AI', location='Journal', bundle_name=None, transaction_type_no=1, prohibit_multiple_years=True):
         if images:
             res = self._client.attachment.upload_files(images, location=location)
             for e in entries:
                 e['stamp_no'] = res['StampNo']
 
-        year = list(set([re.sub(r'-\d\d-\d\d', '', e['date']) for e in entries]))
-        if len(year) > 1:
+        years = list(set([self.get_entry_year(e) for e in entries]))
+
+        if len(years) > 1 and prohibit_multiple_years:
             raise ValueError('Multiple years found in entries')
-        year = int(year[0])
 
         data = dict(
             allow_difference=False,
@@ -224,14 +230,28 @@ class Accounts:
             bundle_name='{} {}'.format(bundle_prefix, datetime.datetime.today().isoformat()),
             entries=entries,
             location=location,
-            year=year,
             transaction_type_no=transaction_type_no,
         )
 
         if bundle_name:
             data['bundle_name'] = bundle_name
 
-        return self.save_bundle_list(data)
+        if prohibit_multiple_years:
+            # bundles has just one bundle
+            year = years[0]
+            bundle = self.create_bundle(data, year)
+            bundles = [bundle]
+
+            bundlelist = self.create_bundlelist(data, bundles, years)
+
+            return self.save_bundle_list(bundlelist)
+        else:
+            # collect each created bundle while iterating over years
+            bundles = list([self.create_bundle(data, year) for year in years])
+
+            bundlelist = self.create_bundlelist(data, bundles, years)
+
+            return self.save_bundle_list(bundlelist)
 
     def print_entries(self, entries):
         accounts = self._client.accounts.get_taxcode_list()['results']
@@ -241,63 +261,36 @@ class Accounts:
             vat_account = account_list[str(row['tax_no'])]
             print((row['comment'][:40].ljust(40), row['amount'], row['tax_no'], vat_account['AccountNo']))
 
-    def create_bundlelist(self, data):
-        api = self._client._get_client(self._service)
+    def get_entry_year(self, entry):
+        date = entry.get('date', None)
 
-        if len(data.get('entries', [])) == 0:
-            raise Exception('No entried found.')
+        if date is None:
+            return datetime.datetime.today().year
+        else:
+            year_as_string = re.sub(r'-\d\d-\d\d', '', date)
+            return int(year_as_string)
 
-        entries = data.get('entries', [])
+    def select_entries_for_year(self, entries, year):
+        return [e for e in entries if self.get_entry_year(e) == year]
 
-        # group entries by stamp_no to get unique invoices
-        invoices = []
+    def partition_entries_by_invoice_stamp_no(self, entries):
+        entry_lists = []
+
         for stamp_no in set([e.get('stamp_no', None) for e in entries]):
-            invoices.append(
+            entry_lists.append(
                 [e for e in entries if e.get('stamp_no', None) == stamp_no]
             )
+        
+        return entry_lists
 
-        #
-        # Add CurrencyRate to entries
-        #
-        try:
-            rate_res = self._client.client.get_currency_list()
-            if rate_res['count'] >= 1:
-                rates = dict([(x['Symbol'], x['Rate']) for x in rate_res['results']])
-                for entry in entries:
-                    entry['currency_rate'] = rates.get(entry['currency_id'], None) or None
-
-        except Exception as ex:
-            print('ERROR getting currency_rate: %s' % ex)
-
-        #
-        # BUNDLE LIST
-        #
-        bundlelist = api.factory.create('BundleList')
-
-        bundlelist.Bundles = api.factory.create('ArrayOfBundle')
-
-        # Allow difference in credit/debit balance.
-        # This is only applicable when saving journal data (see SaveOption) below.
-        # Default value is false.
-        bundlelist.AllowDifference = data.get('allow_difference', True)
-
-        # DirectLedger
-        # If set to false use customer ledger. If set to true use account that is set directly.
-        bundlelist.DirectLedger = data.get('direct_ledger', False)
-
-        # SaveOption
-        # Can be either 1 or 0.
-        # Setting 1 saves the bundle as a journal which can then be reviewed and edited on the 24SevenOffice web site.
-        # Setting 0 saves the bundle directly to the ledger.
-        bundlelist.SaveOption = data.get('save_option', 1)
+    def create_bundle(self, data, year):
+        api = self._client._get_client(self._service)
 
         # Attachments
         # attachments = {}
 
         # cached stamp
         # cache_stamp = None
-
-        transaction_numbers = []
 
         #
         # BUNDLE
@@ -306,7 +299,7 @@ class Accounts:
         bundle.Vouchers = api.factory.create('ArrayOfVoucher')
 
         # The YearId is set to the current year of the bundle. e.g. 2017.
-        bundle.YearId = int(data.get('year', datetime.datetime.today().year))
+        bundle.YearId = year or int(datetime.datetime.today().year)
         # Can be defined for either Bundle or Voucher. This is an entry type.
         # The No property from GetTransactionTypes is used.
         bundle.Sort = int(data.get('transaction_type_no', 1))
@@ -314,15 +307,24 @@ class Accounts:
         # The name of the bundle.
         bundle.Name = data.get('bundle_name', None)
 
-        # BundleDirectAccounting: If set to false it automatically calculates VAT. If set to true it does not calculate VAT.
+        # BundleDirectAccounting:
         # This is only applicable when saving journal data (see SaveOption).
-        if bundlelist.SaveOption:
+        #
+        # - If set to false it automatically calculates VAT.
+        #   (here, `save_option` is 0 when direct-to-ledger)
+        #
+        # - If set to true it does not calculate VAT.
+        #   (when not direct-to-ledger, bundle.BundleDirectAccounting is not set here)
+        if data.get('save_option', 1) == 1:
             bundle.BundleDirectAccounting = False
 
-        # Get the next available TransactionNo
+        all_entries_in_year = self.select_entries_for_year(data.entries, bundle.YearId)
+        entries_in_year_by_invoice = self.partition_entries_by_invoice_stamp_no(all_entries_in_year)
+
+        # Get the next available TransactionNo, within a given year
         entry_id = api.factory.create('EntryId')
         today = datetime.datetime.today()
-        entry_id.Date = datetime.datetime(data['year'], today.month, today.day)
+        entry_id.Date = datetime.datetime(bundle.YearId, today.month, today.day)
         entry_id.SortNo = 3  # incoming invoice/creditnote
         entry_id.EntryNo = 1  # temp value
         entry_id = api.service.GetEntryId(entry_id)
@@ -332,10 +334,10 @@ class Accounts:
         #
         # invoice_refs = list(set([entry['invoice_refno'] for entry in entries]))
 
-        for pos, invoice in enumerate(invoices):
+        for pos, entries_in_year_for_invoice in enumerate(entries_in_year_by_invoice):
 
             #
-            # VOUCHER / invoice
+            # VOUCHER / invoice entries in given year / transaction
             #
             # This the transaction number of the voucher.
             voucher = api.factory.create('Voucher')
@@ -347,9 +349,8 @@ class Accounts:
             voucher.Sort = int(data.get('transaction_type_no', 1))
 
             voucher.TransactionNo = entry_id.EntryNo + pos
-            transaction_numbers.append(voucher.TransactionNo)
 
-            for row in invoice:
+            for row in entries_in_year_for_invoice:
                 #
                 # ENTRY / a single transaction
                 #
@@ -387,32 +388,87 @@ class Accounts:
             # add voucher to bundle
             bundle.Vouchers.Voucher.append(voucher)
 
-        # add bundle to bundlelist
-        bundlelist.Bundles.Bundle.append(bundle)
+        return bundle
+
+
+    def create_bundlelist(self, data, bundles, years):
+        api = self._client._get_client(self._service)
+
+        if len(data.get('entries', [])) == 0:
+            raise Exception('No entried found.')
+
+        entries = data.get('entries', [])
+
+        #
+        # Add CurrencyRate to entries
+        #
+        try:
+            rate_res = self._client.client.get_currency_list()
+            if rate_res['count'] >= 1:
+                rates = dict([(x['Symbol'], x['Rate']) for x in rate_res['results']])
+                for entry in entries:
+                    entry['currency_rate'] = rates.get(entry['currency_id'], None) or None
+
+        except Exception as ex:
+            print('ERROR getting currency_rate: %s' % ex)
+
+        #
+        # BUNDLE LIST
+        #
+        bundlelist = api.factory.create('BundleList')
+
+        bundlelist.Bundles = api.factory.create('ArrayOfBundle')
+
+        # Allow difference in credit/debit balance.
+        # This is only applicable when saving journal data (see SaveOption) below.
+        # Default value is false.
+        bundlelist.AllowDifference = data.get('allow_difference', True)
+
+        # DirectLedger
+        # If set to false use customer ledger. If set to true use account that is set directly.
+        bundlelist.DirectLedger = data.get('direct_ledger', False)
+
+        # SaveOption
+        # Can be either 1 or 0.
+        # Setting 1 saves the bundle as a journal which can then be reviewed and edited on the 24SevenOffice web site.
+        # Setting 0 saves the bundle directly to the ledger.
+        bundlelist.SaveOption = data.get('save_option', 1)
+
+        # add this single bundle to bundlelist
+
+        # and add each bundle to bundlelist
+        for bundle in bundles:
+            bundlelist.Bundles.Bundle.append(bundle)
+
         return bundlelist
 
-    def save_bundle_list(self, data):
-        api = self._client._get_client(self._service)
-        method = api.service.SaveBundleList
-
-        bundlelist = self.create_bundlelist(data)
-
-        transaction_numbers = {}
+    def save_bundle_list(self, bundlelist):
+        stamp_numbers = []
+        transaction_numbers = []
 
         for bundle in bundlelist.Bundles.Bundle:
             for voucher in bundle.Vouchers.Voucher:
                 for entry in voucher.Entries.Entry:
                     if entry.StampNo:
-                        transaction_numbers[entry.StampNo] = voucher.TransactionNo
-
-        stamp_numbers = list(transaction_numbers.keys())
+                        stamp_numbers.append(entry.StampNo)
+                        transaction_numbers.append(voucher.TransactionNo)
 
         cache_stamp = stamp_numbers[0] if len(stamp_numbers) else None
 
+        response = self.do_save_bundle_list(bundlelist, transaction_numbers, stamp_numbers, cache_stamp)
+
+        return response
+
+    def do_save_bundle_list(self, bundlelist, transaction_numbers, stamp_numbers, cache_stamp):
+        api = self._client._get_client(self._service)
+        method = api.service.SaveBundleList
+
         response = self._client._get(method, bundlelist)
+
+        # Include extra data
         response['transaction_ids'] = transaction_numbers
         response['stamp_numbers'] = stamp_numbers
-        # response['bundlelist'] = bundlelist
         response['stamp_no'] = cache_stamp
 
         return response
+
