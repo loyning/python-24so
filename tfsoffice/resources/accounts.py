@@ -476,7 +476,8 @@ class Accounts:
         return response
 
     def append_to_list_for_key(self, dictionary, key, new_value):
-        previous_list = dictionary.get(key, [])
-        new_list = previous_list.append(new_value)
-        dictionary[key] = new_list
+        values = dictionary.get(key, [])
+        values.append(new_value)
+        dictionary[key] = values
+
         return dictionary
