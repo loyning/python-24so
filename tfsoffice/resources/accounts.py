@@ -280,7 +280,7 @@ class Accounts:
             entry_lists.append(
                 [e for e in entries if e.get('stamp_no', None) == stamp_no]
             )
-        
+
         return entry_lists
 
     def create_bundle(self, data, year):
@@ -318,7 +318,8 @@ class Accounts:
         if data.get('save_option', 1) == 1:
             bundle.BundleDirectAccounting = False
 
-        all_entries_in_year = self.select_entries_for_year(data.entries, bundle.YearId)
+        entries_as_flat_list = data.get('entries', [])
+        all_entries_in_year = self.select_entries_for_year(entries_as_flat_list, bundle.YearId)
         entries_in_year_by_invoice = self.partition_entries_by_invoice_stamp_no(all_entries_in_year)
 
         # Get the next available TransactionNo, within a given year
