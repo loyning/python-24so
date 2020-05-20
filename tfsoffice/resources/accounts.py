@@ -478,6 +478,6 @@ class Accounts:
     def append_to_list_for_key(self, dictionary, key, new_value):
         values = dictionary.get(key, [])
         values.append(new_value)
-        dictionary[key] = values
+        dictionary[key] = list(set(values))
 
         return dictionary
