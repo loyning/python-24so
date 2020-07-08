@@ -33,6 +33,24 @@ class Client:
 
         return self._client._get_collection(method, params)
 
+    def get_client_information(self):
+        api = self._client._get_client(self._service)
+
+        params = None
+
+        method = api.service.GetClientInformation
+
+        return self._client._get(method, params)
+
+    def get_vat_type_list(self):
+        api = self._client._get_client(self._service)
+
+        params = None
+
+        method = api.service.GetVatTypeList
+
+        return self._client._get_collection(method, params)
+
     # def register_payment(self, payment, params={}, **options):
     #     api = self._client._get_client(self._service)
 
