@@ -132,6 +132,9 @@ class Client:
             'TransactionService.asmx?WSDL',
     }
 
+    _client_information = {}
+    _country_code = ''
+
     def __init__(self, username, password, applicationid, identityid=None, token_id=None, faults=True, **options):  # noqa
         """
         Initialize a Client object with session, optional auth handler, and options
@@ -140,6 +143,7 @@ class Client:
         self._faults = faults
         self._clients = {}
         self._headers = None
+        self._username = username
 
         if 'session_id' in options:
             session_id = options['session_id']
@@ -181,6 +185,10 @@ class Client:
         # intializes each resource, injecting this client object into the constructor
         for name, Klass in list(RESOURCE_CLASSES.items()):
             setattr(self, name, Klass(self))
+
+        # load client information to get country code
+        self._client_information = self.client.get_client_information()
+        self._country_code = self._client_information.get('Country') or ''
 
     def _authenticate(
             self,
