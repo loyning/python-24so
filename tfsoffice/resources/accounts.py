@@ -257,22 +257,22 @@ class Accounts:
             )
 
         # get bank details about the vendor
-        customer_ids = list(set([e['customer_id'] for e in entries]))
-        giro_numbers = list(set([e['giro_number'] for e in entries]))
+        # customer_ids = list(set([e['customer_id'] for e in entries]))
+        # giro_numbers = list(set([e['giro_number'] for e in entries]))
 
-        if self._client._country_code.upper() == 'SE' and customer_ids and giro_numbers:
-            # load vendor to get payment info from CRM
-            vendor = self._client.companies.find_by_id(customer_ids[0])
+        # if self._client._country_code.upper() == 'SE' and customer_ids and giro_numbers:
+        #     # load vendor to get payment info from CRM
+        #     vendor = self._client.companies.find_by_id(customer_ids[0])
 
-            # if giro number does not match value in CRM - change it
-            if vendor.get('BankAccountNo') != giro_numbers[0]:
-                stored_value = vendor.get('BankAccountNo').replace('-', '')
-                giro_number = giro_numbers[0].replace('-', '')
+        #     # if giro number does not match value in CRM - change it
+        #     if vendor.get('BankAccountNo') != giro_numbers[0]:
+        #         stored_value = vendor.get('BankAccountNo').replace('-', '')
+        #         giro_number = giro_numbers[0].replace('-', '')
 
-                if stored_value == giro_number:
-                    for e in entries:
-                        e['bankaccount'] = vendor.get('BankAccountNo')
-                print(entries)
+        #         if stored_value == giro_number:
+        #             for e in entries:
+        #                 e['bankaccount'] = vendor.get('BankAccountNo')
+        #         print(entries)
 
         #
         # Add CurrencyRate to entries
