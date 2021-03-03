@@ -21,6 +21,8 @@ class Accounts:
 
         return self._client._get_collection(method, None)
 
+    # Does not appear to be used.
+    # Note that SortNo is set to 1 here, but should vary based on EntrySeriesId.
     def get_entry_id(self, year):
         api = self._client._get_client(self._service)
 
@@ -174,6 +176,7 @@ class Accounts:
     #     )
     #     return bundle_list
 
+    # NOTE - save_option 1 already
     def save_entries_as_bundle(self, entries, images=[], bundle_prefix='AI', location='Journal', bundle_name=None, transaction_type_no=1):
         """
         TRANSFER
@@ -206,6 +209,7 @@ class Accounts:
 
         return self.save_bundle_list(data)
 
+    # NOTE - save_option 0 !!! (and direct_ledger and allow_difference)
     def save_entries_to_ledger(self, entries, images=[], bundle_prefix='AI', location='Journal', bundle_name=None, transaction_type_no=1):
         if images:
             res = self._client.attachment.upload_files(images, location=location)
@@ -241,6 +245,12 @@ class Accounts:
             vat_account = account_list[str(row['tax_no'])]
             print((row['comment'][:40].ljust(40), row['amount'], row['tax_no'], vat_account['AccountNo']))
 
+    # NOTE - save_option 1 is hard-coded already on bundlelist (so what about other fns above?)
+    #      - that also would have the effect of setting to this in the code below:
+    #        `bundle.BundleDirectAccounting = False`
+    #      - also hard-coded here on bundlelist is:
+    #       * bundlelist.AllowDifference = data.get('allow_difference', True)
+    #       * bundlelist.DirectLedger = data.get('direct_ledger', False)
     def create_bundlelist(self, data):
         api = self._client._get_client(self._service)
 
@@ -327,6 +337,7 @@ class Accounts:
         bundle.YearId = int(data.get('year', datetime.datetime.today().year))
         # Can be defined for either Bundle or Voucher. This is an entry type.
         # The No property from GetTransactionTypes is used.
+
         bundle.Sort = int(data.get('transaction_type_no', 1))
 
         # The name of the bundle.
@@ -362,9 +373,11 @@ class Accounts:
 
             # Can be defined for either Bundle or Voucher. This is an entry type. The No property from
             # GetTransactionTypes is used.
+
             voucher.Sort = int(data.get('transaction_type_no', 1))
 
             voucher.TransactionNo = entry_id.EntryNo + pos
+
             transaction_numbers.append(voucher.TransactionNo)
 
             for row in invoice:
