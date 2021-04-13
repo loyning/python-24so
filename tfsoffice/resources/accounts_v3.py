@@ -24,6 +24,7 @@ class AccountsV3:
         year = int(year[0])
 
         data = dict(
+            ignore_warnings=True,
             allow_difference=False,
             direct_ledger=True,
             save_option=0,  # direct to ledger
@@ -43,9 +44,7 @@ class AccountsV3:
     # NOTE - save_option 1 is hard-coded already on bundlelist (check other fns above)
     #      - that also would have the effect of setting to this in the code below:
     #        `bundle.BundleDirectAccounting = False`
-    #      - also hard-coded here on bundlelist is:
-    #       * bundlelist.AllowDifference = data.get('allow_difference', True)
-    #       * bundlelist.DirectLedger = data.get('direct_ledger', False)
+    #      - see comments on other hard-coded values in the function below
     def create_bundlelist(self, data):
         api = self._client._get_client(self._service)
 
@@ -80,6 +79,18 @@ class AccountsV3:
         bundlelist = api.factory.create('BundleList')
 
         bundlelist.Bundles = api.factory.create('ArrayOfBundle')
+
+        # A new setting available in /Economy/Account/V003/AccountService.asmx?WSD
+        #
+        # Setting this _to True by default_, as a workaround to issues on 24SO side,
+        # until we move to their REST API:
+        # "This is the fastest way for us to proceed since there [is] a lot of
+        # business logic behind warnings."
+        #
+        # Note that this could miss some warnings or errors, perhaps including
+        # rounding errors, but we won't know until this is tested against their
+        # service.
+        bundlelist.IgnoreWarnings = data.get('ignore_warnings', True)
 
         # Allow difference in credit/debit balance.
         # This is only applicable when saving journal data (see SaveOption) below.
