@@ -176,10 +176,12 @@ class AccountsV3:
                 if row.get('position', None) is not None:
                     entry.SequenceId = row.get('position', None)
                 entry.CustomerId = row.get('customer_id', None)
-                # TODO AccountNo
+                # TODO AccountNo; is value same as here ('account_no')
+                #                 or need to use AccountNo from Account ?
+                #
                 # AccountId is replaced by AccountNo in Account/V003:
                 # https://api-beta.24sevenoffice.com/Economy/Account/V003/AccountService.asmx?WSDL
-                entry.AccountId = row.get('account_no', None)
+                entry.AccountNo = row.get('account_no', None)
                 if row.get('date', None):
                     entry.Date = datetime.datetime.strptime(row['date'], '%Y-%m-%d')
                 if row.get('due_date', None):
